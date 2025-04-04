@@ -15,6 +15,7 @@ import {
   Divider,
   Stack,
   Chip,
+  useTheme,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
@@ -29,20 +30,25 @@ import { useAuth } from '../contexts/AuthContext';
 import { MemoryCarousel } from '../components';
 import { alpha } from '@mui/material/styles';
 import catImage from '../assets/cat.jpg';
+import Logo from '../components/Logo';
 
 const FamilyDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [memories, setMemories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const theme = useTheme();
 
   useEffect(() => {
     const fetchMemories = async () => {
       try {
         // Get the current user's ID
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
         if (userError || !user) {
-          throw new Error("User not authenticated");
+          throw new Error('User not authenticated');
         }
 
         // Get the connected patient's ID from the family_members table
@@ -53,7 +59,7 @@ const FamilyDashboard = () => {
           .single();
 
         if (familyError || !familyData) {
-          throw new Error("Could not find connected patient");
+          throw new Error('Could not find connected patient');
         }
 
         // Fetch memories for the connected patient
@@ -201,39 +207,17 @@ const FamilyDashboard = () => {
                 </Box>
               </Grid>
               <Grid item xs={12} md={4}>
-                <Stack spacing={1}>
-                  <Paper
-                    elevation={0}
-                    sx={{
-                      p: 2,
-                      bgcolor: 'rgba(255, 255, 255, 0.15)',
-                      borderRadius: 2,
-                      backdropFilter: 'blur(10px)',
-                    }}>
-                    <Typography variant='body2' sx={{ fontWeight: 500 }}>
-                      {userData.patientName}'s Mood Today
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                      <MoodIcon sx={{ color: '#FFD700', mr: 1 }} />
-                      <Typography variant='body1'>Happy</Typography>
-                    </Box>
-                  </Paper>
-                  <Paper
-                    elevation={0}
-                    sx={{
-                      p: 2,
-                      bgcolor: 'rgba(255, 255, 255, 0.15)',
-                      borderRadius: 2,
-                      backdropFilter: 'blur(10px)',
-                    }}>
-                    <Typography variant='body2' sx={{ fontWeight: 500 }}>
-                      Memories This Month
-                    </Typography>
-                    <Typography variant='h4' sx={{ mt: 1, fontWeight: 700 }}>
-                      7
-                    </Typography>
-                  </Paper>
-                </Stack>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: { xs: 'center', md: 'flex-end' },
+                    alignItems: 'center',
+                    mt: { xs: 3, md: 0 },
+                    transform: 'scale(1.1)',
+                    transformOrigin: 'right center',
+                  }}>
+                  <Logo size='large' withLink={false} />
+                </Box>
               </Grid>
             </Grid>
           </Paper>

@@ -1,6 +1,6 @@
-# MemoBloom
+# ReKindle
 
-MemoBloom is a React-based web application designed to help dementia patients and their family members track and share memories. The application provides a user-friendly interface for recording, organizing, and revisiting personal memories through various media types including photos, voice recordings, and text.
+ReKindle is a React-based web application designed to help dementia patients and their family members track and share memories. The application provides a user-friendly interface for recording, organizing, and revisiting personal memories through various media types including photos, voice recordings, and text.
 
 ## Features
 

@@ -39,6 +39,7 @@ import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { motion } from 'framer-motion';
+import Logo from './Logo';
 
 const drawerWidth = 260;
 
@@ -287,29 +288,17 @@ const Layout = () => {
         flexDirection: 'column',
       }}>
       <Box sx={{ px: 3, mb: 1, display: { xs: 'block', md: 'none' } }}>
-        <Typography
-          variant='h5'
+        <Box
           component={RouterLink}
           to='/'
           sx={{
-            fontWeight: 700,
             textDecoration: 'none',
-            color: 'inherit',
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'flex-start',
           }}>
-          <span
-            style={{
-              fontFamily: '"Playfair Display", serif',
-              fontWeight: 800,
-              color: muiTheme.palette.primary.main,
-            }}>
-            Memo
-          </span>
-          <span style={{ fontFamily: 'Roboto, sans-serif', fontWeight: 500 }}>
-            Bloom
-          </span>
-        </Typography>
+          <Logo size='small' withLink={false} />
+        </Box>
       </Box>
 
       <Divider sx={{ mb: 0.5, opacity: 0.6 }} />
@@ -457,17 +446,16 @@ const Layout = () => {
                 textDecoration: 'none',
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'flex-start',
                 color: mode === 'dark' ? 'primary.main' : 'inherit',
                 '&:hover': {
                   opacity: 0.85,
                 },
+                transform: 'scale(1.2)',
+                transformOrigin: 'left center',
+                mx: { xs: 2, sm: 0 },
               }}>
-              <SpaOutlinedIcon sx={{ mr: 1, fontSize: 24 }} />
-              <Typography
-                variant='h6'
-                sx={{ fontWeight: 600, display: 'flex', alignItems: 'center' }}>
-                MemoBloom
-              </Typography>
+              <Logo size='medium' withLink={false} />
             </Box>
           </StyledLogoContainer>
 

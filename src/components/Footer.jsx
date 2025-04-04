@@ -6,8 +6,6 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
-import { motion } from 'framer-motion';
-import AccessibilityNewIcon from '@mui/icons-material/AccessibilityNew';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import SettingsIcon from '@mui/icons-material/Settings';
 import HomeIcon from '@mui/icons-material/Home';
@@ -38,34 +36,6 @@ const Footer = () => {
           <Box
             sx={{
               display: 'flex',
-              alignItems: 'center',
-              mb: { xs: 2, md: 0 },
-            }}>
-            <motion.div
-              whileHover={{ rotate: 10, scale: 1.1 }}
-              transition={{ duration: 0.3 }}>
-              <AccessibilityNewIcon sx={{ mr: 1 }} />
-            </motion.div>
-            <Typography
-              variant='h6'
-              component='div'
-              sx={{
-                fontFamily: '"Playfair Display", serif',
-                fontWeight: 700,
-                fontSize: '1.2rem',
-                color: 'white',
-              }}>
-              <span style={{ fontWeight: 800 }}>Memo</span>
-              <span
-                style={{ fontWeight: 400, fontFamily: 'Roboto, sans-serif' }}>
-                Bloom
-              </span>
-            </Typography>
-          </Box>
-
-          <Box
-            sx={{
-              display: 'flex',
               justifyContent: 'center',
               mb: { xs: 2, md: 0 },
             }}>
@@ -87,19 +57,7 @@ const Footer = () => {
           </Box>
 
           <Typography variant='body2' color='white'>
-            © {currentYear}{' '}
-            <span
-              style={{
-                fontFamily: '"Playfair Display", serif',
-                fontWeight: 700,
-              }}>
-              <span style={{ fontWeight: 800 }}>Memo</span>
-              <span
-                style={{ fontWeight: 400, fontFamily: 'Roboto, sans-serif' }}>
-                Bloom
-              </span>
-            </span>
-            . All rights reserved.
+            © {currentYear} ReKindle. All rights reserved.
           </Typography>
         </Box>
 

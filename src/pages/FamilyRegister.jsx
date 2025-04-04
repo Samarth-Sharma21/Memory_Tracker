@@ -23,6 +23,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PhoneIcon from '@mui/icons-material/Phone';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from './server';
+import Logo from '../components/Logo';
 
 const FamilyRegister = () => {
   const navigate = useNavigate();
@@ -105,7 +106,9 @@ const FamilyRegister = () => {
     }
 
     if (!mobileRegex.test(formData.patientMobile.replace(/[^0-9]/g, ''))) {
-      setError('Please enter a valid 10-digit Indian mobile number for the patient');
+      setError(
+        'Please enter a valid 10-digit Indian mobile number for the patient'
+      );
       setLoading(false);
       return;
     }
@@ -127,7 +130,9 @@ const FamilyRegister = () => {
         .single();
 
       if (patientError || !patientData) {
-        throw new Error('Patient not found. Please check the mobile number and try again.');
+        throw new Error(
+          'Patient not found. Please check the mobile number and try again.'
+        );
       }
 
       // Step 3: Insert family member data
@@ -208,45 +213,19 @@ const FamilyRegister = () => {
                 alignItems: 'center',
                 mb: 3,
               }}>
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}>
-                <PeopleAltIcon color='primary' sx={{ fontSize: 60, mb: 2 }} />
-              </motion.div>
-              <Typography
-                variant='h4'
-                component='h1'
-                gutterBottom
-                sx={{
-                  mb: 2,
-                  textAlign: 'center',
-                }}>
-                <span
-                  style={{
-                    fontFamily: '"Playfair Display", serif',
-                    fontWeight: 800,
-                  }}>
-                  Memo
-                </span>
-                <span
-                  style={{
-                    fontFamily: 'Roboto, sans-serif',
-                    fontWeight: 400,
-                  }}>
-                  Bloom
-                </span>
-              </Typography>
+              <Box sx={{ mb: 2 }}>
+                <Logo size='large' />
+              </Box>
               <Typography variant='h5' gutterBottom sx={{ fontWeight: 500 }}>
-                Family Member Registration
+                Create Family Account
               </Typography>
               <Typography
                 variant='body1'
                 color='text.secondary'
                 align='center'
-                sx={{ mb: 4, maxWidth: '400px', mx: 'auto' }}>
-                Join your loved one's memory journey. Enter your details and the
-                group code they provided.
+                sx={{ mb: 4, maxWidth: '450px', mx: 'auto' }}>
+                Register to connect with your family member and access their
+                memories.
               </Typography>
             </Box>
 
@@ -289,7 +268,7 @@ const FamilyRegister = () => {
                     </InputAdornment>
                   ),
                 }}
-                helperText="Enter a 10-digit Indian mobile number"
+                helperText='Enter a 10-digit Indian mobile number'
               />
 
               <TextField
@@ -432,7 +411,7 @@ const FamilyRegister = () => {
                 disabled={loading}
                 sx={{ py: 1.5, borderRadius: 2, fontSize: '1.1rem', mb: 2 }}>
                 {loading ? (
-                  <CircularProgress size={24} color="inherit" />
+                  <CircularProgress size={24} color='inherit' />
                 ) : (
                   'Register'
                 )}

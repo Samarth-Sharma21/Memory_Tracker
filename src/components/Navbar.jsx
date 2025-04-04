@@ -91,7 +91,7 @@ const Navbar = () => {
         <Toolbar disableGutters>
           <div>
             <AccessibilityNewIcon
-              sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }}
+              sx={{ display: { xs: 'none', md: 'flex' }, mr: 1, fontSize: 35 }}
             />
           </div>
           <Typography
@@ -102,17 +102,17 @@ const Navbar = () => {
             sx={{
               mr: 3,
               display: { xs: 'none', md: 'flex' },
-              fontFamily: '"Playfair Display", serif',
-              fontWeight: 700,
-              fontSize: '1.4rem',
+              fontFamily: '"Bodoni Moda", serif',
+              fontWeight: 400,
+              fontSize: '2rem',
               color: 'inherit',
               textDecoration: 'none',
               letterSpacing: '0.05rem',
             }}>
-            <span style={{ fontWeight: 800 }}>Memo</span>
-            <span style={{ fontWeight: 400, fontFamily: 'Roboto, sans-serif' }}>
-              Bloom
-            </span>
+            <span style={{ fontWeight: 700 }}>R</span>
+            <span>e</span>
+            <span style={{ fontWeight: 700 }}>K</span>
+            <span>indle</span>
           </Typography>
 
           {/* Mobile menu */}
@@ -158,7 +158,7 @@ const Navbar = () => {
 
           {/* Mobile logo */}
           <AccessibilityNewIcon
-            sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }}
+            sx={{ display: { xs: 'flex', md: 'none' }, mr: 1, fontSize: 30 }}
           />
           <Typography
             variant='h5'
@@ -169,17 +169,17 @@ const Navbar = () => {
               mr: 2,
               display: { xs: 'flex', md: 'none' },
               flexGrow: 1,
-              fontFamily: '"Playfair Display", serif',
-              fontWeight: 700,
-              fontSize: '1.2rem',
+              fontFamily: '"Bodoni Moda", serif',
+              fontWeight: 400,
+              fontSize: '1.7rem',
               color: 'inherit',
               textDecoration: 'none',
               letterSpacing: '0.05rem',
             }}>
-            <span style={{ fontWeight: 800 }}>Memo</span>
-            <span style={{ fontWeight: 400, fontFamily: 'Roboto, sans-serif' }}>
-              Bloom
-            </span>
+            <span style={{ fontWeight: 700 }}>R</span>
+            <span>e</span>
+            <span style={{ fontWeight: 700 }}>K</span>
+            <span>indle</span>
           </Typography>
 
           {/* Desktop menu */}

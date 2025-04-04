@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from "./server";
+import { supabase } from './server';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   Box,
@@ -19,10 +19,10 @@ import {
 import { motion } from 'framer-motion';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import AccessibilityNewIcon from '@mui/icons-material/AccessibilityNew';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PhoneIcon from '@mui/icons-material/Phone';
 import { useAuth } from '../contexts/AuthContext';
+import Logo from '../components/Logo';
 
 const PatientRegister = () => {
   const navigate = useNavigate();
@@ -57,51 +57,57 @@ const PatientRegister = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!formData.name || !formData.mobile || !formData.email || !formData.password || !formData.confirmPassword) {
+
+    if (
+      !formData.name ||
+      !formData.mobile ||
+      !formData.email ||
+      !formData.password ||
+      !formData.confirmPassword
+    ) {
       setError('Please fill in all fields');
       return;
     }
-  
+
     if (!formData.agreeTerms) {
       setError('Please agree to the terms and conditions');
       return;
     }
-  
+
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
     }
-  
+
     const mobileRegex = /^[0-9]{10}$/;
     if (!mobileRegex.test(formData.mobile.replace(/[^0-9]/g, ''))) {
       setError('Please enter a valid 10-digit Indian mobile number');
       return;
     }
-  
+
     try {
       // Step 1: Sign up user using Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
       });
-  
+
       if (authError) throw authError;
-  
+
       // Step 2: Store additional user details in the 'patients' table
       const { data: userData, error: userError } = await supabase
         .from('patients')
         .insert([
           {
-            id: authData.user.id,  // Store Supabase-auth user ID
+            id: authData.user.id, // Store Supabase-auth user ID
             name: formData.name,
             mobile: formData.mobile,
             email: formData.email,
           },
         ]);
-  
+
       if (userError) throw userError;
-  
+
       console.log('Patient registered:', userData);
       navigate('/patient/dashboard');
     } catch (error) {
@@ -109,8 +115,7 @@ const PatientRegister = () => {
       setError(error.message);
     }
   };
-  
-  
+
   return (
     <Box
       sx={{
@@ -148,38 +153,9 @@ const PatientRegister = () => {
                 alignItems: 'center',
                 mb: 3,
               }}>
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}>
-                <AccessibilityNewIcon
-                  color='primary'
-                  sx={{ fontSize: 60, mb: 2 }}
-                />
-              </motion.div>
-              <Typography
-                variant='h4'
-                component='h1'
-                gutterBottom
-                sx={{
-                  mb: 2,
-                  textAlign: 'center',
-                }}>
-                <span
-                  style={{
-                    fontFamily: '"Playfair Display", serif',
-                    fontWeight: 800,
-                  }}>
-                  Memo
-                </span>
-                <span
-                  style={{
-                    fontFamily: 'Roboto, sans-serif',
-                    fontWeight: 400,
-                  }}>
-                  Bloom
-                </span>
-              </Typography>
+              <Box sx={{ mb: 2 }}>
+                <Logo size='large' />
+              </Box>
               <Typography variant='h5' gutterBottom sx={{ fontWeight: 500 }}>
                 Create Patient Account
               </Typography>

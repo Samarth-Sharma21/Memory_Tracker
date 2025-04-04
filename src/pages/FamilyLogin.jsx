@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { supabase } from './server.js';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   Box,
@@ -19,6 +20,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import PeopleIcon from '@mui/icons-material/People';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useAuth } from '../contexts/AuthContext';
+import Logo from '../components/Logo';
 
 const FamilyLogin = () => {
   const navigate = useNavigate();
@@ -29,6 +31,7 @@ const FamilyLogin = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -39,79 +42,80 @@ const FamilyLogin = () => {
     setShowPassword(!showPassword);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Basic validation
+    setLoading(true);
+
     if (!formData.email || !formData.password) {
       setError('Please fill in all fields');
+      setLoading(false);
       return;
     }
 
-    // In a real app, we would authenticate with a backend
-    // For demo purposes, we'll authenticate using the context
-    const userData = {
-      name: 'Sarah Thompson', // Demo user data
-      email: formData.email,
-      patientName: 'John Doe', // Demo connected patient
-      patientId: '123456',
-      relation: 'Daughter',
-      lastActive: 'Yesterday',
-      recentActivities: [
-        {
-          id: 1,
-          type: 'memory_added',
-          title: 'Added a new photo',
-          date: '2 hours ago',
-        },
-        {
-          id: 2,
-          type: 'routine_completed',
-          title: 'Completed morning routine',
-          date: 'Yesterday',
-        },
-        {
-          id: 3,
-          type: 'event_scheduled',
-          title: 'Doctor appointment scheduled',
-          date: '3 days ago',
-        },
-      ],
-      memories: [
-        {
-          id: 1,
-          title: 'Beach Day',
-          description: 'A wonderful day at Malibu Beach with Dad',
-          date: 'June 15, 2023',
-          imageUrl: 'https://source.unsplash.com/random/800x600/?beach',
-          location: 'Malibu, CA',
-          tags: ['family', 'beach', 'summer'],
-          reactions: 5,
-        },
-        {
-          id: 2,
-          title: 'Birthday Celebration',
-          description: "Dad's 65th birthday with all the grandchildren",
-          date: 'May 2, 2023',
-          imageUrl: 'https://source.unsplash.com/random/800x600/?birthday',
-          location: 'Home',
-          tags: ['birthday', 'family', 'celebration'],
-          reactions: 8,
-        },
-        {
-          id: 3,
-          title: 'Garden Visit',
-          description: 'Taking Dad to the Botanical Gardens',
-          date: 'April 10, 2023',
-          imageUrl: 'https://source.unsplash.com/random/800x600/?garden',
-          location: 'Botanical Gardens',
-          tags: ['nature', 'garden', 'spring'],
-          reactions: 3,
-        },
-      ],
-      // Add any other user data you need
-    };
+    try {
+      // Step 1: Authenticate user with Supabase Auth
+      const { data: authData, error: authError } =
+        await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
 
-    login('family', userData);
+      if (authError) {
+        setError('Invalid email or password');
+        setLoading(false);
+        return;
+      }
+
+      // Step 2: Fetch family member details
+      const { data: familyData, error: familyError } = await supabase
+        .from('family_members')
+        .select('*, patients:patient_id(*)')
+        .eq('id', authData.user.id)
+        .single();
+
+      if (familyError || !familyData) {
+        setError('Error fetching family member data');
+        setLoading(false);
+        return;
+      }
+
+      console.log('Family member authenticated:', familyData);
+
+      // Step 3: Get recent memories for the connected patient
+      const { data: memoriesData, error: memoriesError } = await supabase
+        .from('memories')
+        .select('*')
+        .eq('user_id', familyData.patient_id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      let memories = [];
+      if (!memoriesError && memoriesData) {
+        memories = memoriesData;
+      }
+
+      // Step 4: Store authenticated user data in context
+      const userData = {
+        id: authData.user.id,
+        name: familyData.name,
+        email: familyData.email,
+        mobile: familyData.mobile,
+        relationship: familyData.relationship,
+        patient_id: familyData.patient_id,
+        patient_name: familyData.patients?.name || 'Patient',
+        patient_mobile: familyData.patient_mobile,
+        memories: memories,
+        lastActive: new Date().toISOString(),
+      };
+
+      login('family', userData);
+      navigate('/family/dashboard');
+    } catch (error) {
+      console.error('Error logging in:', error.message);
+      setError('Authentication error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -151,42 +155,15 @@ const FamilyLogin = () => {
                 alignItems: 'center',
                 mb: 3,
               }}>
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}>
-                <PeopleIcon color='primary' sx={{ fontSize: 60, mb: 2 }} />
-              </motion.div>
-              <Typography
-                variant='h4'
-                component='h1'
-                gutterBottom
-                sx={{
-                  mb: 3,
-                  textAlign: 'center',
-                }}>
-                <span
-                  style={{
-                    fontFamily: '"Playfair Display", serif',
-                    fontWeight: 800,
-                  }}>
-                  Memo
-                </span>
-                <span
-                  style={{
-                    fontFamily: 'Roboto, sans-serif',
-                    fontWeight: 400,
-                  }}>
-                  Bloom
-                </span>
-              </Typography>
+              <Box sx={{ mb: 3 }}>
+                <Logo size='large' />
+              </Box>
               <Typography
                 variant='body1'
                 color='text.secondary'
                 align='center'
                 sx={{ mb: 4, maxWidth: '400px', mx: 'auto' }}>
-                Welcome back! Please log in to access your family member's
-                memories.
+                Family Member Login - Connect with your loved one's memories
               </Typography>
             </Box>
 
@@ -227,84 +204,82 @@ const FamilyLogin = () => {
                   endAdornment: (
                     <InputAdornment position='end'>
                       <IconButton
-                        aria-label='toggle password visibility'
                         onClick={handleTogglePassword}
-                        edge='end'>
+                        edge='end'
+                        aria-label='toggle password visibility'>
                         {showPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
                     </InputAdornment>
                   ),
                 }}
-                sx={{ mb: 3 }}
               />
 
               <Button
-                component={motion.button}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
                 type='submit'
                 fullWidth
                 variant='contained'
                 color='primary'
                 size='large'
-                sx={{ py: 1.5, borderRadius: 2, fontSize: '1.1rem', mb: 2 }}>
-                Log In
+                disabled={loading}
+                sx={{
+                  mt: 3,
+                  mb: 2,
+                  py: 1.5,
+                  fontSize: '1.1rem',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  borderRadius: 2,
+                }}>
+                {loading ? 'Logging in...' : 'Log In'}
               </Button>
 
-              <Box sx={{ textAlign: 'center', mt: 2 }}>
-                <Typography variant='body2' color='text.secondary'>
-                  Forgot your password?{' '}
-                  <Link
+              <Grid container spacing={2} sx={{ mt: 1 }}>
+                <Grid item xs={12} sm={6}>
+                  <Button
+                    component={Link}
                     to='/forgot-password'
-                    style={{ color: 'inherit', fontWeight: 'bold' }}>
-                    Reset it here
-                  </Link>
+                    fullWidth
+                    color='primary'
+                    sx={{ textTransform: 'none' }}>
+                    Forgot Password?
+                  </Button>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Button
+                    component={Link}
+                    to='/family/register'
+                    fullWidth
+                    color='primary'
+                    sx={{ textTransform: 'none' }}>
+                    Create Account
+                  </Button>
+                </Grid>
+              </Grid>
+
+              <Divider sx={{ my: 3 }}>
+                <Typography variant='body2' color='text.secondary'>
+                  or
                 </Typography>
-              </Box>
-            </form>
+              </Divider>
 
-            <Divider sx={{ my: 3 }} />
-
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant='body2' color='text.secondary'>
-                Don't have an account?{' '}
-                <Button
-                  component={Link}
-                  to='/family/register'
-                  color='secondary'
-                  sx={{ fontWeight: 'bold' }}>
-                  Create Account
-                </Button>
-              </Typography>
-            </Box>
-
-            <Box
-              sx={{
-                mt: 3,
-                p: 2,
-                bgcolor: 'background.default',
-                borderRadius: 2,
-              }}>
-              <Typography variant='body2' color='text.secondary' align='center'>
-                <strong>Note:</strong> You need an invitation code from a
-                patient to connect to their account. If you don't have a code,
-                please ask your family member to share it with you.
-              </Typography>
-            </Box>
-          </Paper>
-
-          <Box sx={{ textAlign: 'center', mt: 4 }}>
-            <Typography variant='body2' color='text.secondary'>
-              Are you a patient?{' '}
               <Button
                 component={Link}
                 to='/patient/login'
+                fullWidth
+                variant='outlined'
                 color='primary'
-                sx={{ fontWeight: 'bold' }}>
-                Patient Login
+                size='large'
+                sx={{
+                  py: 1.5,
+                  fontSize: '1.1rem',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  borderRadius: 2,
+                }}>
+                Log In as Patient
               </Button>
-            </Typography>
-          </Box>
+            </form>
+          </Paper>
         </motion.div>
       </Container>
     </Box>

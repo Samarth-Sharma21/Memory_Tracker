@@ -41,6 +41,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
 import catImage from '../assets/cat.jpg';
+import Logo from '../components/Logo';
 
 const PatientDashboard = () => {
   const navigate = useNavigate();
@@ -52,31 +53,34 @@ const PatientDashboard = () => {
 
   // Create a combined userData object with defaults and auth data
   const [memories, setMemories] = useState([]);
-const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [recentLocations, setRecentLocations] = useState([]);
 
-useEffect(() => {
-  const fetchMemories = async () => {
-    try {
+  useEffect(() => {
+    const fetchMemories = async () => {
+      try {
         // Get the current user's ID
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
         if (userError || !user) {
-          throw new Error("User not authenticated");
+          throw new Error('User not authenticated');
         }
 
-      const { data, error } = await supabase
-        .from('memories')
+        const { data, error } = await supabase
+          .from('memories')
           .select('*')
           .eq('user_id', user.id) // Filter by current user's ID
           .order('date', { ascending: false });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      setMemories(data || []);
+        setMemories(data || []);
 
         // Get unique locations, keeping only the most recent occurrence of each
         const uniqueLocations = data
-          .filter(memory => memory.location && memory.location.trim() !== '')
+          .filter((memory) => memory.location && memory.location.trim() !== '')
           .reduce((acc, memory) => {
             if (!acc.includes(memory.location)) {
               acc.push(memory.location);
@@ -86,27 +90,27 @@ useEffect(() => {
           .slice(0, 3); // Take only the first 3 unique locations
 
         setRecentLocations(uniqueLocations);
-    } catch (error) {
-      console.error('Error fetching memories:', error.message);
-    } finally {
-      setLoading(false);
-    }
+      } catch (error) {
+        console.error('Error fetching memories:', error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMemories();
+  }, []);
+
+  const handleAddMemory = () => {
+    navigate('/add-memory');
   };
 
-  fetchMemories();
-}, []);
+  const handleViewMemory = (id) => {
+    navigate(`/memory/${id}`);
+  };
 
-const handleAddMemory = () => {
-  navigate('/add-memory');
-};
-
-const handleViewMemory = (id) => {
-  navigate(`/memory/${id}`);
-};
-
-const toggleBreathingExercise = () => {
-  setShowBreathingExercise(!showBreathingExercise);
-};
+  const toggleBreathingExercise = () => {
+    setShowBreathingExercise(!showBreathingExercise);
+  };
 
   // Animation variants
   const itemVariants = {
@@ -198,58 +202,77 @@ const toggleBreathingExercise = () => {
                   spacing={3}
                   alignItems='center'
                   sx={{ position: 'relative', zIndex: 1 }}>
-                  <Grid item xs={12} md={7}>
+                  <Grid item xs={12} sm={7}>
                     <Typography
                       variant='h4'
                       component='h1'
-                      gutterBottom
                       sx={{
                         fontWeight: 700,
-                        lineHeight: 1.2,
-                        color: '#fff',
-                        textShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                        mb: 1,
+                        display: 'flex',
+                        alignItems: 'center',
                       }}>
-                      {greeting} {userData?.name}
+                      {getGreetingMessage()}{' '}
+                      <Box
+                        component='span'
+                        sx={{ pl: 1, fontWeight: 400, opacity: 0.9 }}>
+                        {userData.name}
+                      </Box>
                     </Typography>
                     <Typography
-                      variant='subtitle1'
-                      sx={{
-                        mb: 3,
-                        opacity: 1,
-                        maxWidth: '600px',
-                        color: '#fff',
-                        fontWeight: 500,
-                      }}>
-                      Welcome to your personal memory dashboard. Explore your
-                      memories, add new ones, or take a moment to relax with
-                      breathing exercises.
+                      variant='body1'
+                      sx={{ mb: 2, opacity: 0.9, fontSize: '1.1rem' }}>
+                      Welcome to your memory dashboard. Ready to capture some
+                      new memories today?
                     </Typography>
+                    <Stack direction='row' spacing={2}>
+                      <Button
+                        variant='contained'
+                        onClick={handleAddMemory}
+                        startIcon={<AddPhotoAlternateIcon />}
+                        sx={{
+                          bgcolor: 'white',
+                          color: theme.palette.primary.main,
+                          fontWeight: 600,
+                          '&:hover': {
+                            bgcolor: 'rgba(255,255,255,0.9)',
+                          },
+                        }}>
+                        Add Memory
+                      </Button>
+                      <Button
+                        variant='outlined'
+                        color='inherit'
+                        startIcon={<SpaIcon />}
+                        onClick={toggleBreathingExercise}
+                        sx={{
+                          borderColor: 'rgba(255,255,255,0.5)',
+                          fontWeight: 600,
+                          '&:hover': {
+                            borderColor: 'white',
+                            bgcolor: 'rgba(255,255,255,0.1)',
+                          },
+                        }}>
+                        Breathing Exercise
+                      </Button>
+                    </Stack>
+                    {showBreathingExercise && (
+                      <Box sx={{ mt: 3, maxWidth: '100%', overflow: 'hidden' }}>
+                        <BreathingExercise />
+                      </Box>
+                    )}
                   </Grid>
-                  <Grid item xs={12} md={5}>
+                  <Grid item xs={12} sm={5}>
                     <Box
                       sx={{
                         display: 'flex',
-                        gap: 2,
-                        justifyContent: { xs: 'flex-start', md: 'flex-end' },
-                        mt: { xs: 3, md: 0 },
+                        justifyContent: { xs: 'center', sm: 'flex-end' },
+                        alignItems: 'center',
+                        mt: { xs: 2, sm: 0 },
+                        transform: 'scale(1.1)',
+                        transformOrigin: 'right center',
                       }}>
-                      <Box
-                        sx={{
-                          bgcolor: 'rgba(255, 255, 255, 0.2)',
-                          p: 2,
-                          borderRadius: 3,
-                          width: { xs: '50%', sm: '140px' },
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                        }}>
-                        <Typography
-                          variant='h4'
-                          sx={{ fontWeight: 700, color: '#fff' }}>
-                          {userData?.familyMembers.length}
-                        </Typography>
-                        <Typography variant='body2' sx={{ color: '#fff' }}>
-                          Family Members
-                        </Typography>
-                      </Box>
+                      <Logo size='large' withLink={false} />
                     </Box>
                   </Grid>
                 </Grid>
@@ -384,27 +407,31 @@ const toggleBreathingExercise = () => {
                     </Box>
                     <Divider sx={{ mb: 3 }} />
                     {recentLocations.length > 0 ? (
-                    <Stack spacing={2}>
+                      <Stack spacing={2}>
                         {recentLocations.map((location, index) => (
                           <Box
                             key={index}
-                              sx={{
-                                display: 'flex',
-                                alignItems: 'center',
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
                               gap: 1,
                               p: 1,
                               borderRadius: 1,
                               '&:hover': {
-                                bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1),
+                                bgcolor: (theme) =>
+                                  alpha(theme.palette.primary.main, 0.1),
                               },
                             }}>
-                              <LocationOnIcon color="primary" sx={{ fontSize: 20 }} />
-                              <Typography variant="body1">{location}</Typography>
-                            </Box>
-                      ))}
-                    </Stack>
+                            <LocationOnIcon
+                              color='primary'
+                              sx={{ fontSize: 20 }}
+                            />
+                            <Typography variant='body1'>{location}</Typography>
+                          </Box>
+                        ))}
+                      </Stack>
                     ) : (
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant='body2' color='text.secondary'>
                         No recent locations found
                       </Typography>
                     )}
@@ -643,7 +670,7 @@ const toggleBreathingExercise = () => {
                     View All
                   </Button>
                 </Box>
-        
+
                 <Grid container spacing={3}>
                   {memories?.length > 0 ? (
                     memories.slice(0, 3).map((memory) => (
@@ -659,45 +686,52 @@ const toggleBreathingExercise = () => {
                             '&:hover': {
                               transform: 'translateY(-5px)',
                               boxShadow: (theme) =>
-                                `0 8px 16px ${alpha(theme.palette.primary.main, 0.15)}`,
+                                `0 8px 16px ${alpha(
+                                  theme.palette.primary.main,
+                                  0.15
+                                )}`,
                             },
                           }}
-                          onClick={() => handleViewMemory(memory.id)}
-                        >
+                          onClick={() => handleViewMemory(memory.id)}>
                           <CardMedia
-                            component="img"
-                            height="140"
+                            component='img'
+                            height='140'
                             image={memory.content || catImage}
-                            alt={memory.title || "Memory"}
+                            alt={memory.title || 'Memory'}
                           />
                           <CardContent sx={{ flexGrow: 1 }}>
-                            <Typography variant="h6" component="div" gutterBottom>
-                              {memory.title || "Untitled Memory"}
+                            <Typography
+                              variant='h6'
+                              component='div'
+                              gutterBottom>
+                              {memory.title || 'Untitled Memory'}
                             </Typography>
                             <Typography
-                              variant="caption"
-                              color="text.secondary"
+                              variant='caption'
+                              color='text.secondary'
                               sx={{
-                                display: "flex",
-                                alignItems: "center",
+                                display: 'flex',
+                                alignItems: 'center',
                                 mb: 1,
-                              }}
-                            >
-                              <CalendarTodayOutlinedIcon fontSize="inherit" sx={{ mr: 0.5 }} />
-                              {memory.date || "Unknown Date"}
+                              }}>
+                              <CalendarTodayOutlinedIcon
+                                fontSize='inherit'
+                                sx={{ mr: 0.5 }}
+                              />
+                              {memory.date || 'Unknown Date'}
                             </Typography>
                             <Typography
-                              variant="body2"
-                              color="text.secondary"
+                              variant='body2'
+                              color='text.secondary'
                               sx={{
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                display: "-webkit-box",
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                display: '-webkit-box',
                                 WebkitLineClamp: 2,
-                                WebkitBoxOrient: "vertical",
-                              }}
-                            >
-                              {memory.description || "No description available."}
+                                WebkitBoxOrient: 'vertical',
+                              }}>
+                              {memory.description ||
+                                'No description available.'}
                             </Typography>
                           </CardContent>
                         </Card>
@@ -705,7 +739,10 @@ const toggleBreathingExercise = () => {
                     ))
                   ) : (
                     // **This part was missing in your code**
-                    <Typography variant="body1" color="text.secondary" sx={{ m: 2 }}>
+                    <Typography
+                      variant='body1'
+                      color='text.secondary'
+                      sx={{ m: 2 }}>
                       No memories found.
                     </Typography>
                   )}

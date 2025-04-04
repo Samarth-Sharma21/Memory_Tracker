@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from "./server.js";
+import { supabase } from './server.js';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   Box,
@@ -20,6 +20,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import AccessibilityNewIcon from '@mui/icons-material/AccessibilityNew';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useAuth } from '../contexts/AuthContext';
+import Logo from '../components/Logo';
 
 const PatientLogin = () => {
   const navigate = useNavigate();
@@ -30,6 +31,7 @@ const PatientLogin = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -42,89 +44,86 @@ const PatientLogin = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+    setLoading(true);
+
     if (!formData.email || !formData.password) {
       setError('Please fill in all fields');
+      setLoading(false);
       return;
     }
-  
+
     try {
       // Step 1: Authenticate user with Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
-      });
-  
+      const { data: authData, error: authError } =
+        await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
       if (authError) {
         setError('Invalid email or password');
+        setLoading(false);
         return;
       }
-  
+
       // Step 2: Fetch additional user details from 'patients' table
       const { data: patientData, error: patientError } = await supabase
         .from('patients')
         .select('*')
         .eq('id', authData.user.id) // Fetch data using authenticated user ID
         .single();
-  
+
       if (patientError) {
         setError('Error fetching patient data');
+        setLoading(false);
         return;
       }
-  
+
       console.log('Patient authenticated:', patientData);
-  
-      // Step 3: Store authenticated user data in context/state
+
+      // Step 3: Get family members
+      const { data: familyData, error: familyError } = await supabase
+        .from('family_members')
+        .select('id, name, relationship')
+        .eq('patient_id', authData.user.id);
+
+      let familyMembers = [];
+      if (!familyError && familyData) {
+        familyMembers = familyData;
+      }
+
+      // Step 4: Get recent memories
+      const { data: memoriesData, error: memoriesError } = await supabase
+        .from('memories')
+        .select('*')
+        .eq('user_id', authData.user.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      let memories = [];
+      if (!memoriesError && memoriesData) {
+        memories = memoriesData;
+      }
+
+      // Step 5: Store authenticated user data in context/state
       const userData = {
+        id: authData.user.id,
         name: patientData.name,
         email: patientData.email,
         mobile: patientData.mobile,
-        familyMembers: [
-          { id: 1, name: 'Sarah Thompson', relation: 'Daughter' },
-          { id: 2, name: 'Mark Johnson', relation: 'Son' },
-        ],
-        memories: [
-          {
-            id: 1,
-            title: 'Beach Day',
-            description: 'A wonderful day at Malibu Beach with family',
-            date: 'June 15, 2023',
-            imageUrl: 'https://source.unsplash.com/random/800x600/?beach',
-            location: 'Malibu, CA',
-            tags: ['family', 'beach', 'summer'],
-            reactions: 5,
-          },
-          {
-            id: 2,
-            title: 'Birthday Celebration',
-            description: 'My 65th birthday with all the grandchildren',
-            date: 'May 2, 2023',
-            imageUrl: 'https://source.unsplash.com/random/800x600/?birthday',
-            location: 'Home',
-            tags: ['birthday', 'family', 'celebration'],
-            reactions: 8,
-          },
-          {
-            id: 3,
-            title: 'Garden Visit',
-            description: 'Visiting the Botanical Gardens on a sunny day',
-            date: 'April 10, 2023',
-            imageUrl: 'https://source.unsplash.com/random/800x600/?garden',
-            location: 'Botanical Gardens',
-            tags: ['nature', 'garden', 'spring'],
-            reactions: 3,
-          },
-        ],
+        familyMembers: familyMembers,
+        memories: memories,
       };
-  
+
       login('patient', userData); // Store user session
       navigate('/patient/dashboard'); // Redirect after login
     } catch (error) {
       console.error('Error logging in:', error.message);
-      setError(error.message);
+      setError('Authentication error. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
-  
 
   return (
     <Box
@@ -163,38 +162,9 @@ const PatientLogin = () => {
                 alignItems: 'center',
                 mb: 3,
               }}>
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}>
-                <AccessibilityNewIcon
-                  color='primary'
-                  sx={{ fontSize: 60, mb: 2 }}
-                />
-              </motion.div>
-              <Typography
-                variant='h4'
-                component='h1'
-                gutterBottom
-                sx={{
-                  mb: 3,
-                  textAlign: 'center',
-                }}>
-                <span
-                  style={{
-                    fontFamily: '"Playfair Display", serif',
-                    fontWeight: 800,
-                  }}>
-                  Memo
-                </span>
-                <span
-                  style={{
-                    fontFamily: 'Roboto, sans-serif',
-                    fontWeight: 400,
-                  }}>
-                  Bloom
-                </span>
-              </Typography>
+              <Box sx={{ mb: 3 }}>
+                <Logo size='large' />
+              </Box>
               <Typography
                 variant='body1'
                 color='text.secondary'
@@ -241,70 +211,82 @@ const PatientLogin = () => {
                   endAdornment: (
                     <InputAdornment position='end'>
                       <IconButton
-                        aria-label='toggle password visibility'
                         onClick={handleTogglePassword}
-                        edge='end'>
+                        edge='end'
+                        aria-label='toggle password visibility'>
                         {showPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
                     </InputAdornment>
                   ),
                 }}
-                sx={{ mb: 3 }}
               />
 
               <Button
-                component={motion.button}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
                 type='submit'
                 fullWidth
                 variant='contained'
                 color='primary'
                 size='large'
-                sx={{ py: 1.5, borderRadius: 2, fontSize: '1.1rem', mb: 2 }}>
-                Log In
+                disabled={loading}
+                sx={{
+                  mt: 3,
+                  mb: 2,
+                  py: 1.5,
+                  fontSize: '1.1rem',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  borderRadius: 2,
+                }}>
+                {loading ? 'Logging in...' : 'Log In'}
               </Button>
 
-              <Box sx={{ textAlign: 'center', mt: 2 }}>
-                <Typography variant='body2' color='text.secondary'>
-                  Forgot your password?{' '}
-                  <Link
+              <Grid container spacing={2} sx={{ mt: 1 }}>
+                <Grid item xs={12} sm={6}>
+                  <Button
+                    component={Link}
                     to='/forgot-password'
-                    style={{ color: 'inherit', fontWeight: 'bold' }}>
-                    Reset it here
-                  </Link>
+                    fullWidth
+                    color='primary'
+                    sx={{ textTransform: 'none' }}>
+                    Forgot Password?
+                  </Button>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Button
+                    component={Link}
+                    to='/patient/register'
+                    fullWidth
+                    color='primary'
+                    sx={{ textTransform: 'none' }}>
+                    Create Account
+                  </Button>
+                </Grid>
+              </Grid>
+
+              <Divider sx={{ my: 3 }}>
+                <Typography variant='body2' color='text.secondary'>
+                  or
                 </Typography>
-              </Box>
-            </form>
+              </Divider>
 
-            <Divider sx={{ my: 3 }} />
-
-            <Box sx={{ textAlign: 'center' }}>
-              <Typography variant='body2' color='text.secondary'>
-                Don't have an account?{' '}
-                <Button
-                  component={Link}
-                  to='/patient/register'
-                  color='secondary'
-                  sx={{ fontWeight: 'bold' }}>
-                  Create Account
-                </Button>
-              </Typography>
-            </Box>
-          </Paper>
-
-          <Box sx={{ textAlign: 'center', mt: 4 }}>
-            <Typography variant='body2' color='text.secondary'>
-              Are you a family member?{' '}
               <Button
                 component={Link}
                 to='/family/login'
+                fullWidth
+                variant='outlined'
                 color='primary'
-                sx={{ fontWeight: 'bold' }}>
-                Family Login
+                size='large'
+                sx={{
+                  py: 1.5,
+                  fontSize: '1.1rem',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  borderRadius: 2,
+                }}>
+                Log In as Family Member
               </Button>
-            </Typography>
-          </Box>
+            </form>
+          </Paper>
         </motion.div>
       </Container>
     </Box>

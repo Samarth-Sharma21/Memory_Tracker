@@ -5,6 +5,11 @@
   text-align: center;
 }
 
+/* Global font styling */
+body {
+  font-family: 'JetBrains Mono', monospace;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;
