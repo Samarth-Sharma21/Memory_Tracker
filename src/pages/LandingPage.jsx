@@ -15,6 +15,8 @@ import {
   Toolbar,
   Stack,
   Slide,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
 import MemoryIcon from '@mui/icons-material/Memory';
 import PeopleIcon from '@mui/icons-material/People';
@@ -25,13 +27,17 @@ import SecurityIcon from '@mui/icons-material/Security';
 import FormatQuoteIcon from '@mui/icons-material/FormatQuote';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CelebrationIcon from '@mui/icons-material/Celebration';
+import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
+import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import Logo from '../components/Logo';
 import { Footer } from '../components';
 import Chatbot from '../components/Chatbot';
+import { useTheme as useCustomTheme } from '../contexts/ThemeContext';
 
 const LandingPage = () => {
   const navigate = useNavigate();
   const theme = useTheme();
+  const { mode, toggleTheme } = useCustomTheme();
   const [scrollDir, setScrollDir] = useState('up');
   const [prevScrollY, setPrevScrollY] = useState(0);
 
@@ -115,7 +121,12 @@ const LandingPage = () => {
   ];
 
   return (
-    <Box sx={{ bgcolor: 'background.default' }}>
+    <Box
+      sx={{
+        bgcolor: 'background.default',
+        position: 'relative',
+        minHeight: '100vh',
+      }}>
       {/* Chatbot */}
       <Chatbot />
 
@@ -127,8 +138,15 @@ const LandingPage = () => {
           elevation={0}
           sx={{
             backdropFilter: 'blur(10px)',
-            background: 'rgba(255, 255, 255, 0.9)',
-            borderBottom: `1px solid rgba(255, 138, 0, 0.12)`,
+            background:
+              mode === 'dark'
+                ? 'rgba(18, 18, 18, 0.85)'
+                : 'rgba(255, 255, 255, 0.9)',
+            borderBottom: `1px solid ${
+              mode === 'dark'
+                ? 'rgba(255, 138, 0, 0.2)'
+                : 'rgba(255, 138, 0, 0.12)'
+            }`,
           }}>
           <Container maxWidth='lg'>
             <Toolbar
@@ -164,6 +182,8 @@ const LandingPage = () => {
                   }
                   sx={{
                     fontWeight: 500,
+                    color:
+                      mode === 'dark' ? 'rgba(255,255,255,0.85)' : 'inherit',
                     '&:hover': { color: theme.palette.primary.main },
                     textTransform: 'none',
                   }}>
@@ -179,6 +199,8 @@ const LandingPage = () => {
                   }
                   sx={{
                     fontWeight: 500,
+                    color:
+                      mode === 'dark' ? 'rgba(255,255,255,0.85)' : 'inherit',
                     '&:hover': { color: theme.palette.primary.main },
                     textTransform: 'none',
                   }}>
@@ -191,6 +213,8 @@ const LandingPage = () => {
                   endIcon={<CelebrationIcon />}
                   sx={{
                     fontWeight: 500,
+                    color:
+                      mode === 'dark' ? 'rgba(255,255,255,0.85)' : 'inherit',
                     '&:hover': { color: theme.palette.primary.main },
                     textTransform: 'none',
                   }}>
@@ -199,7 +223,26 @@ const LandingPage = () => {
               </Stack>
 
               {/* Action Buttons */}
-              <Box sx={{ display: 'flex', gap: 2 }}>
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                {/* Theme Toggle */}
+                <Tooltip
+                  title={`Switch to ${
+                    mode === 'light' ? 'Dark' : 'Light'
+                  } Mode`}>
+                  <IconButton
+                    onClick={toggleTheme}
+                    color='inherit'
+                    sx={{
+                      color:
+                        mode === 'dark' ? 'primary.main' : 'text.secondary',
+                    }}>
+                    {mode === 'dark' ? (
+                      <LightModeOutlinedIcon />
+                    ) : (
+                      <DarkModeOutlinedIcon />
+                    )}
+                  </IconButton>
+                </Tooltip>
                 <Button
                   variant='outlined'
                   color='primary'
@@ -238,7 +281,10 @@ const LandingPage = () => {
         sx={{
           position: 'relative',
           overflow: 'hidden',
-          background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 50%, ${theme.palette.secondary.main} 100%)`,
+          background:
+            mode === 'dark'
+              ? 'linear-gradient(90deg, #8B4513 0%, #B15500 100%)'
+              : `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 50%, ${theme.palette.secondary.main} 100%)`,
           pt: { xs: 12, sm: 14, md: 16 }, // Reduced padding for shorter hero
           pb: { xs: 8, sm: 10, md: 12 }, // Reduced padding for shorter hero
         }}>
@@ -282,12 +328,17 @@ const LandingPage = () => {
                     color: 'white',
                     textAlign: 'center',
                     fontFamily: '"Playfair Display", serif',
+                    textShadow:
+                      mode === 'dark' ? '0 2px 10px rgba(0,0,0,0.3)' : 'none',
                   }}>
                   Transform Uncertain into{' '}
                   <Box
                     component='span'
                     sx={{
-                      color: theme.palette.secondary.light,
+                      color:
+                        mode === 'dark'
+                          ? '#FFB84D'
+                          : theme.palette.secondary.light,
                       fontStyle: 'italic',
                       letterSpacing: '0.03em',
                     }}>
@@ -305,6 +356,8 @@ const LandingPage = () => {
                     color: 'rgba(255,255,255,0.9)',
                     textAlign: 'center',
                     mx: 'auto',
+                    textShadow:
+                      mode === 'dark' ? '0 1px 5px rgba(0,0,0,0.2)' : 'none',
                   }}>
                   The ultimate memory preservation platform, making memories
                   last forever.
@@ -319,7 +372,7 @@ const LandingPage = () => {
                   }}>
                   <Button
                     variant='contained'
-                    color='secondary'
+                    color={mode === 'dark' ? 'inherit' : 'secondary'}
                     size='large'
                     onClick={handlePatientRegister}
                     sx={{
@@ -329,11 +382,19 @@ const LandingPage = () => {
                       fontSize: '1rem',
                       fontWeight: 600,
                       textTransform: 'none',
-                      boxShadow: theme.shadows[4],
+                      boxShadow:
+                        mode === 'dark' ? theme.shadows[6] : theme.shadows[4],
                       minWidth: '180px',
+                      bgcolor: mode === 'dark' ? 'white' : undefined,
+                      color: mode === 'dark' ? '#B15500' : undefined,
                       '&:hover': {
-                        boxShadow: theme.shadows[8],
+                        boxShadow:
+                          mode === 'dark'
+                            ? theme.shadows[10]
+                            : theme.shadows[8],
                         transform: 'translateY(-3px)',
+                        bgcolor:
+                          mode === 'dark' ? 'rgba(255,255,255,0.9)' : undefined,
                       },
                       transition: 'all 0.3s',
                     }}>
@@ -353,7 +414,6 @@ const LandingPage = () => {
                       textTransform: 'none',
                       borderColor: 'rgba(255,255,255,0.5)',
                       color: 'white',
-                      minWidth: '180px',
                       '&:hover': {
                         borderColor: 'white',
                         backgroundColor: 'rgba(255,255,255,0.1)',
@@ -374,7 +434,7 @@ const LandingPage = () => {
                     <Button
                       onClick={handlePatientLogin}
                       sx={{
-                        color: 'white',
+                        color: mode === 'dark' ? '#FFB84D' : 'white',
                         fontWeight: 'bold',
                         textTransform: 'none',
                         '&:hover': {
@@ -388,7 +448,7 @@ const LandingPage = () => {
                     <Button
                       onClick={handleFamilyLogin}
                       sx={{
-                        color: 'white',
+                        color: mode === 'dark' ? '#FFB84D' : 'white',
                         fontWeight: 'bold',
                         textTransform: 'none',
                         '&:hover': {
@@ -410,8 +470,15 @@ const LandingPage = () => {
       <Box
         sx={{
           py: 5,
-          borderBottom: `1px solid rgba(255, 138, 0, 0.12)`,
-          background: theme.palette.background.subtle,
+          borderBottom: `1px solid ${
+            mode === 'dark'
+              ? 'rgba(255, 138, 0, 0.2)'
+              : 'rgba(255, 138, 0, 0.12)'
+          }`,
+          background:
+            mode === 'dark'
+              ? 'rgba(30, 30, 30, 0.8)'
+              : theme.palette.background.subtle,
         }}>
         <Container maxWidth='lg'>
           <Grid container spacing={3} justifyContent='center'>
@@ -430,7 +497,10 @@ const LandingPage = () => {
                     <Typography
                       variant='h4'
                       sx={{
-                        color: theme.palette.primary.main,
+                        color:
+                          mode === 'dark'
+                            ? '#FFB84D'
+                            : theme.palette.primary.main,
                         fontWeight: 700,
                         mb: 1,
                       }}>
@@ -438,7 +508,11 @@ const LandingPage = () => {
                     </Typography>
                     <Typography
                       variant='h6'
-                      color='text.secondary'
+                      color={
+                        mode === 'dark'
+                          ? 'rgba(255,255,255,0.85)'
+                          : 'text.secondary'
+                      }
                       sx={{
                         fontWeight: 400,
                         fontSize: { xs: '1rem', md: '1.1rem' },
@@ -458,8 +532,12 @@ const LandingPage = () => {
         id='ourApproach'
         sx={{
           py: { xs: 8, md: 12 },
-          bgcolor: 'background.default',
-          borderBottom: `1px solid rgba(255, 138, 0, 0.12)`,
+          bgcolor: mode === 'dark' ? '#111111' : 'background.default',
+          borderBottom: `1px solid ${
+            mode === 'dark'
+              ? 'rgba(255, 138, 0, 0.2)'
+              : 'rgba(255, 138, 0, 0.12)'
+          }`,
         }}>
         <Container maxWidth='lg'>
           <Grid container justifyContent='center'>
@@ -484,7 +562,10 @@ const LandingPage = () => {
                     component='p'
                     sx={{
                       mb: 1.5,
-                      color: theme.palette.primary.main,
+                      color:
+                        mode === 'dark'
+                          ? '#FFB84D'
+                          : theme.palette.primary.main,
                       letterSpacing: 2,
                       fontWeight: 600,
                       fontSize: '0.9rem',
@@ -500,8 +581,12 @@ const LandingPage = () => {
                       fontSize: { xs: '2rem', sm: '2.5rem', md: '3.2rem' },
                       fontWeight: 800,
                       lineHeight: 1.1,
-                      color: theme.palette.text.primary,
-                      background: `linear-gradient(90deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 100%)`,
+                      color:
+                        mode === 'dark' ? 'white' : theme.palette.text.primary,
+                      background:
+                        mode === 'dark'
+                          ? 'linear-gradient(90deg, #FFB84D 30%, #FFC876 100%)'
+                          : `linear-gradient(90deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 100%)`,
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
                     }}>
@@ -515,7 +600,10 @@ const LandingPage = () => {
                       mb: 4,
                       fontSize: '1.1rem',
                       lineHeight: 1.8,
-                      color: 'text.secondary',
+                      color:
+                        mode === 'dark'
+                          ? 'rgba(255,255,255,0.85)'
+                          : 'text.secondary',
                       maxWidth: '650px',
                       mx: 'auto',
                     }}>
@@ -527,7 +615,7 @@ const LandingPage = () => {
                   </Typography>
                   <Button
                     variant='contained'
-                    color='primary'
+                    color={mode === 'dark' ? 'inherit' : 'primary'}
                     size='large'
                     endIcon={<ArrowForwardIcon />}
                     onClick={handlePatientRegister}
@@ -539,11 +627,19 @@ const LandingPage = () => {
                       fontWeight: 600,
                       textTransform: 'none',
                       boxShadow: 'none',
-                      background: theme.palette.primary.main,
+                      background:
+                        mode === 'dark' ? 'white' : theme.palette.primary.main,
+                      color: mode === 'dark' ? '#B15500' : 'white',
                       '&:hover': {
-                        boxShadow: '0 6px 12px rgba(255, 138, 0, 0.3)',
+                        boxShadow:
+                          mode === 'dark'
+                            ? '0 6px 12px rgba(255, 255, 255, 0.3)'
+                            : '0 6px 12px rgba(255, 138, 0, 0.3)',
                         transform: 'translateY(-3px)',
-                        background: theme.palette.primary.dark,
+                        background:
+                          mode === 'dark'
+                            ? 'rgba(255,255,255,0.9)'
+                            : theme.palette.primary.dark,
                       },
                       transition: 'all 0.3s ease',
                     }}>
@@ -590,7 +686,9 @@ const LandingPage = () => {
                             boxShadow: '0 8px 20px rgba(255, 138, 0, 0.15)',
                           },
                           background:
-                            'linear-gradient(135deg, rgba(255, 138, 0, 0.02) 0%, rgba(255, 255, 255, 1) 100%)',
+                            mode === 'dark'
+                              ? 'linear-gradient(135deg, rgba(255, 138, 0, 0.05) 0%, rgba(40, 40, 40, 1) 100%)'
+                              : 'linear-gradient(135deg, rgba(255, 138, 0, 0.02) 0%, rgba(255, 255, 255, 1) 100%)',
                         }}>
                         <Box sx={{ color: theme.palette.primary.main, mb: 2 }}>
                           {item.icon}
@@ -618,7 +716,10 @@ const LandingPage = () => {
         id='features'
         sx={{
           py: { xs: 8, md: 12 },
-          bgcolor: theme.palette.background.subtle,
+          bgcolor:
+            mode === 'dark'
+              ? 'rgba(18, 18, 18, 0.8)'
+              : theme.palette.background.subtle,
         }}>
         <Container maxWidth='lg'>
           <Grid container spacing={3} direction='column' alignItems='center'>
@@ -638,7 +739,10 @@ const LandingPage = () => {
                   <Typography
                     variant='overline'
                     sx={{
-                      color: theme.palette.primary.main,
+                      color:
+                        mode === 'dark'
+                          ? '#FFB84D'
+                          : theme.palette.primary.main,
                       letterSpacing: 2,
                       fontWeight: 600,
                     }}>
@@ -651,7 +755,10 @@ const LandingPage = () => {
                       mt: 1,
                       mb: 3,
                       fontWeight: 700,
-                      background: `linear-gradient(90deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 100%)`,
+                      background:
+                        mode === 'dark'
+                          ? 'linear-gradient(90deg, #FFB84D 30%, #FFC876 100%)'
+                          : `linear-gradient(90deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 100%)`,
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
                     }}>
@@ -659,7 +766,11 @@ const LandingPage = () => {
                   </Typography>
                   <Typography
                     variant='body1'
-                    color='text.secondary'
+                    color={
+                      mode === 'dark'
+                        ? 'rgba(255,255,255,0.85)'
+                        : 'text.secondary'
+                    }
                     sx={{
                       fontSize: '1.1rem',
                     }}>
@@ -685,14 +796,23 @@ const LandingPage = () => {
                         transform: 'translateY(-10px)',
                         boxShadow: '0 10px 25px rgba(255, 138, 0, 0.2)',
                       },
-                      background: 'white',
-                      border: '1px solid rgba(255, 138, 0, 0.08)',
+                      background:
+                        mode === 'dark'
+                          ? 'linear-gradient(135deg, rgba(177, 85, 0, 0.8) 0%, rgba(139, 69, 19, 0.9) 100%)'
+                          : 'white',
+                      border:
+                        mode === 'dark'
+                          ? `1px solid rgba(255, 178, 0, 0.25)`
+                          : `1px solid rgba(255, 138, 0, 0.08)`,
                     }}>
                     <CardContent sx={{ p: 4 }}>
                       <Box
                         sx={{
                           mb: 3,
-                          color: theme.palette.primary.main,
+                          color:
+                            mode === 'dark'
+                              ? 'rgba(255,255,255,0.9)'
+                              : theme.palette.primary.main,
                           display: 'flex',
                           justifyContent: 'center',
                         }}>
@@ -703,13 +823,21 @@ const LandingPage = () => {
                         component='h3'
                         align='center'
                         gutterBottom
-                        sx={{ fontWeight: 600, mb: 2 }}>
+                        sx={{
+                          fontWeight: 600,
+                          mb: 2,
+                          color: mode === 'dark' ? 'white' : 'inherit',
+                        }}>
                         {feature.title}
                       </Typography>
                       <Typography
                         variant='body2'
                         align='center'
-                        color='text.secondary'
+                        color={
+                          mode === 'dark'
+                            ? 'rgba(255,255,255,0.85)'
+                            : 'text.secondary'
+                        }
                         sx={{ fontSize: '1rem', lineHeight: 1.7 }}>
                         {feature.description}
                       </Typography>
@@ -726,7 +854,7 @@ const LandingPage = () => {
       <Box
         sx={{
           py: { xs: 8, md: 12 },
-          bgcolor: 'background.default',
+          bgcolor: mode === 'dark' ? '#111111' : 'background.default',
         }}>
         <Container maxWidth='lg'>
           <Grid container spacing={3} justifyContent='center'>
@@ -739,7 +867,8 @@ const LandingPage = () => {
                 <Typography
                   variant='overline'
                   sx={{
-                    color: theme.palette.primary.main,
+                    color:
+                      mode === 'dark' ? '#FFB84D' : theme.palette.primary.main,
                     letterSpacing: 2,
                     fontWeight: 600,
                   }}>
@@ -752,7 +881,10 @@ const LandingPage = () => {
                     mt: 1,
                     mb: 2,
                     fontWeight: 700,
-                    background: `linear-gradient(90deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 100%)`,
+                    background:
+                      mode === 'dark'
+                        ? 'linear-gradient(90deg, #FFB84D 30%, #FFC876 100%)'
+                        : `linear-gradient(90deg, ${theme.palette.primary.main} 30%, ${theme.palette.secondary.main} 100%)`,
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                   }}>
@@ -779,10 +911,18 @@ const LandingPage = () => {
                         overflow: 'hidden',
                         boxShadow: '0 4px 12px rgba(255, 138, 0, 0.08)',
                         background:
-                          'linear-gradient(135deg, rgba(255, 138, 0, 0.02) 0%, rgba(255, 255, 255, 1) 100%)',
-                        border: '1px solid rgba(255, 138, 0, 0.05)',
+                          mode === 'dark'
+                            ? 'linear-gradient(135deg, rgba(177, 85, 0, 0.4) 0%, rgba(139, 69, 19, 0.6) 100%)'
+                            : 'linear-gradient(135deg, rgba(255, 138, 0, 0.02) 0%, rgba(255, 255, 255, 1) 100%)',
+                        border:
+                          mode === 'dark'
+                            ? `1px solid rgba(255, 178, 0, 0.2)`
+                            : `1px solid rgba(255, 138, 0, 0.05)`,
                         '&:hover': {
-                          boxShadow: '0 8px 20px rgba(255, 138, 0, 0.12)',
+                          boxShadow:
+                            mode === 'dark'
+                              ? '0 8px 20px rgba(255, 178, 0, 0.15)'
+                              : '0 8px 20px rgba(255, 138, 0, 0.12)',
                           transform: 'translateY(-5px)',
                         },
                         transition: 'all 0.3s ease',
@@ -791,7 +931,10 @@ const LandingPage = () => {
                       }}>
                       <Box
                         sx={{
-                          color: 'rgba(255, 138, 0, 0.07)',
+                          color:
+                            mode === 'dark'
+                              ? 'rgba(255, 178, 0, 0.1)'
+                              : 'rgba(255, 138, 0, 0.07)',
                           position: 'absolute',
                           top: -10,
                           left: -10,
@@ -813,25 +956,40 @@ const LandingPage = () => {
                             lineHeight: 1.7,
                             fontStyle: 'italic',
                             textAlign: 'center',
+                            color:
+                              mode === 'dark'
+                                ? 'rgba(255,255,255,0.9)'
+                                : 'inherit',
                           }}>
                           "{testimonial.quote}"
                         </Typography>
                         <Divider
                           sx={{
                             mb: 2,
-                            borderColor: 'rgba(255, 138, 0, 0.12)',
+                            borderColor:
+                              mode === 'dark'
+                                ? 'rgba(255, 178, 0, 0.3)'
+                                : 'rgba(255, 138, 0, 0.12)',
                             width: '50%',
                             mx: 'auto',
                           }}
                         />
                         <Typography
                           variant='subtitle1'
-                          sx={{ fontWeight: 600, textAlign: 'center' }}>
+                          sx={{
+                            fontWeight: 600,
+                            textAlign: 'center',
+                            color: mode === 'dark' ? 'white' : 'inherit',
+                          }}>
                           {testimonial.author}
                         </Typography>
                         <Typography
                           variant='body2'
-                          color='text.secondary'
+                          color={
+                            mode === 'dark'
+                              ? 'rgba(255,255,255,0.7)'
+                              : 'text.secondary'
+                          }
                           sx={{ textAlign: 'center' }}>
                           {testimonial.role}
                         </Typography>
@@ -850,7 +1008,10 @@ const LandingPage = () => {
         id='howWeWork'
         sx={{
           py: { xs: 8, md: 12 },
-          background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 50%, ${theme.palette.secondary.main} 100%)`,
+          background:
+            mode === 'dark'
+              ? 'linear-gradient(90deg, #8B4513 0%, #B15500 100%)'
+              : `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 50%, ${theme.palette.secondary.main} 100%)`,
           color: 'white',
           textAlign: 'center',
         }}>
@@ -899,7 +1060,7 @@ const LandingPage = () => {
               <Button
                 variant='contained'
                 size='large'
-                color='secondary'
+                color='inherit'
                 onClick={handlePatientRegister}
                 sx={{
                   py: 2,
@@ -908,10 +1069,20 @@ const LandingPage = () => {
                   fontSize: '1.1rem',
                   fontWeight: 600,
                   textTransform: 'none',
-                  boxShadow: '0 4px 15px rgba(255, 189, 0, 0.3)',
+                  boxShadow:
+                    mode === 'dark'
+                      ? '0 4px 15px rgba(255, 255, 255, 0.35)'
+                      : '0 4px 15px rgba(255, 189, 0, 0.3)',
+                  bgcolor: 'white',
+                  color:
+                    mode === 'dark' ? '#B15500' : theme.palette.secondary.main,
                   '&:hover': {
-                    boxShadow: '0 8px 25px rgba(255, 189, 0, 0.4)',
+                    boxShadow:
+                      mode === 'dark'
+                        ? '0 8px 25px rgba(255, 255, 255, 0.45)'
+                        : '0 8px 25px rgba(255, 189, 0, 0.4)',
                     transform: 'translateY(-3px)',
+                    bgcolor: 'rgba(255,255,255,0.9)',
                   },
                   transition: 'all 0.3s',
                 }}>

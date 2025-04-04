@@ -1,14 +1,4 @@
-import {
-  Box,
-  Container,
-  Typography,
-  Link,
-  IconButton,
-  Tooltip,
-} from '@mui/material';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import SettingsIcon from '@mui/icons-material/Settings';
-import HomeIcon from '@mui/icons-material/Home';
+import { Box, Container, Typography, Link } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 const Footer = () => {
@@ -33,29 +23,6 @@ const Footer = () => {
             justifyContent: 'space-between',
             alignItems: 'center',
           }}>
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              mb: { xs: 2, md: 0 },
-            }}>
-            <Tooltip title='Home'>
-              <IconButton color='inherit' onClick={() => navigate('/')}>
-                <HomeIcon />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title='Help Center'>
-              <IconButton color='inherit' onClick={() => navigate('/help')}>
-                <HelpOutlineIcon />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title='Settings'>
-              <IconButton color='inherit' onClick={() => navigate('/settings')}>
-                <SettingsIcon />
-              </IconButton>
-            </Tooltip>
-          </Box>
-
           <Typography variant='body2' color='white'>
             © {currentYear} ReKindle. All rights reserved.
           </Typography>

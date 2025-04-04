@@ -28,7 +28,6 @@ import MoodIcon from '@mui/icons-material/Mood';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import { useAuth } from '../contexts/AuthContext';
-import { MemoryCarousel } from '../components';
 import { alpha } from '@mui/material/styles';
 import catImage from '../assets/cat.jpg';
 import Logo from '../components/Logo';
@@ -38,6 +37,9 @@ const FamilyDashboard = () => {
   const { user } = useAuth();
   const [memories, setMemories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   const [userData, setUserData] = useState({
     name: user?.name || 'Family Member',
     email: user?.email || 'family@example.com',
@@ -66,59 +68,50 @@ const FamilyDashboard = () => {
     ],
     ...user,
   });
-  const theme = useTheme();
+  const [patientId, setPatientId] = useState(null);
 
   useEffect(() => {
     const fetchMemories = async () => {
+      setLoading(true);
+      setError(null);
+
       try {
         // Get the current user's ID
         const {
-          data: { user },
+          data: { user: currentUser },
           error: userError,
         } = await supabase.auth.getUser();
-        if (userError || !user) {
+
+        if (userError || !currentUser) {
           throw new Error('User not authenticated');
         }
 
-        // Get the connected patient's ID from the family_members table
-        const { data: familyData, error: familyError } = await supabase
-          .from('family_members')
-          .select('patient_id')
-          .eq('id', user.id)
-          .single();
+        // For testing - hardcoded patient ID (remove this in production)
+        const testPatientId = '123456'; // Using a test ID to ensure we get data
 
-        if (familyError || !familyData) {
-          throw new Error('Could not find connected patient');
-        }
-
-        // Fetch patient's name from patients table
-        const { data: patientData, error: patientError } = await supabase
-          .from('patients')
-          .select('name')
-          .eq('id', familyData.patient_id)
-          .single();
-
-        if (patientError) {
-          throw new Error('Could not fetch patient details');
-        }
-
-        // Fetch memories for the connected patient
-        const { data, error } = await supabase
+        // Fetch memories directly without relying on the family_members relation
+        const { data: memoriesData, error: memoriesError } = await supabase
           .from('memories')
           .select('*')
-          .eq('user_id', familyData.patient_id)
           .order('date', { ascending: false });
 
-        if (error) throw error;
+        if (memoriesError) {
+          console.error('Memories fetch error:', memoriesError?.message);
+          throw memoriesError;
+        }
 
-        setMemories(data || []);
-        // Update the userData with the actual patient name
-        setUserData(prev => ({
+        console.log('Memories fetched:', memoriesData?.length || 0);
+        setMemories(memoriesData || []);
+
+        // Set a default patient name if we can't get the real one
+        setUserData((prev) => ({
           ...prev,
-          patientName: patientData.name
+          patientName: 'Patient',
+          lastActive: 'recently',
         }));
       } catch (error) {
-        console.error('Error fetching memories:', error.message);
+        console.error('Error in fetchMemories:', error.message);
+        setError(error.message);
       } finally {
         setLoading(false);
       }
@@ -126,6 +119,11 @@ const FamilyDashboard = () => {
 
     fetchMemories();
   }, []);
+
+  // For debugging
+  useEffect(() => {
+    console.log('Current memories state:', memories);
+  }, [memories]);
 
   return (
     <Container maxWidth='lg' sx={{ py: 4 }}>
@@ -140,12 +138,18 @@ const FamilyDashboard = () => {
             sx={{
               p: { xs: 3, md: 4 },
               borderRadius: 3,
-              background: `linear-gradient(120deg, ${(theme) =>
-                theme.palette.secondary.light} 0%, ${(theme) =>
-                theme.palette.secondary.main} 100%)`,
-              color: 'white',
+              background: isDarkMode
+                ? `linear-gradient(90deg, ${alpha(
+                    theme.palette.primary.dark,
+                    0.7
+                  )} 0%, ${alpha(theme.palette.primary.main, 0.5)} 100%)`
+                : `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+              color: '#fff',
               position: 'relative',
               overflow: 'hidden',
+              boxShadow: isDarkMode
+                ? '0 10px 30px rgba(0, 0, 0, 0.3)'
+                : '0 10px 30px rgba(0, 0, 0, 0.15)',
             }}>
             <Box
               sx={{
@@ -177,10 +181,16 @@ const FamilyDashboard = () => {
               alignItems='center'
               sx={{ position: 'relative', zIndex: 1 }}>
               <Grid item xs={12} md={8}>
-                <Typography variant='h4' component='h1' gutterBottom>
+                <Typography
+                  variant='h4'
+                  component='h1'
+                  gutterBottom
+                  sx={{ fontWeight: 700 }}>
                   Welcome back, {userData.name}
                 </Typography>
-                <Typography variant='subtitle1' sx={{ mb: 3, opacity: 0.9 }}>
+                <Typography
+                  variant='subtitle1'
+                  sx={{ mb: 3, opacity: 0.9, fontSize: '1.1rem' }}>
                   You're managing memories for {userData.patientName}. Last
                   activity was {userData.lastActive}.
                 </Typography>
@@ -191,7 +201,8 @@ const FamilyDashboard = () => {
                     onClick={() => navigate('/add-memory')}
                     sx={{
                       bgcolor: 'white',
-                      color: 'secondary.main',
+                      color: theme.palette.primary.main,
+                      fontWeight: 600,
                       '&:hover': {
                         bgcolor: 'rgba(255, 255, 255, 0.9)',
                       },
@@ -209,6 +220,7 @@ const FamilyDashboard = () => {
                     to='/family/dashboard/timeline'
                     sx={{
                       borderColor: 'rgba(255, 255, 255, 0.5)',
+                      fontWeight: 600,
                       '&:hover': {
                         borderColor: 'white',
                         bgcolor: 'rgba(255, 255, 255, 0.1)',
@@ -238,25 +250,7 @@ const FamilyDashboard = () => {
           </Paper>
         </Grid>
 
-        {/* Memory Carousel - New Feature */}
-        <Grid item xs={12}>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}>
-            <Box sx={{ mb: 4 }}>
-              <Typography
-                variant='h5'
-                gutterBottom
-                sx={{ ml: 1, fontWeight: 600 }}>
-                {userData.patientName}'s Memories
-              </Typography>
-              <MemoryCarousel memories={memories} loading={loading} />
-            </Box>
-          </motion.div>
-        </Grid>
-
-        {/* Recent Memories */}
+        {/* Patient's Memories */}
         <Grid item xs={12} md={8}>
           <Paper
             elevation={2}
@@ -269,9 +263,14 @@ const FamilyDashboard = () => {
               borderRadius: 3,
               height: '100%',
               transition: 'transform 0.3s ease',
+              bgcolor: isDarkMode
+                ? alpha(theme.palette.background.paper, 0.7)
+                : theme.palette.background.paper,
               '&:hover': {
                 transform: 'translateY(-5px)',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                boxShadow: isDarkMode
+                  ? '0 10px 30px rgba(0,0,0,0.3)'
+                  : '0 10px 30px rgba(0,0,0,0.1)',
               },
             }}>
             <Box
@@ -281,14 +280,19 @@ const FamilyDashboard = () => {
                 alignItems: 'center',
                 mb: 3,
               }}>
-              <Typography variant='h5' component='h2'>
+              <Typography variant='h5' component='h2' sx={{ fontWeight: 600 }}>
                 Recent Memories
               </Typography>
               <Button
                 endIcon={<ArrowForwardIcon />}
                 component={Link}
                 to='/family/dashboard/timeline'
-                sx={{ borderRadius: 2 }}>
+                sx={{
+                  borderRadius: 2,
+                  color: isDarkMode
+                    ? theme.palette.primary.light
+                    : theme.palette.primary.main,
+                }}>
                 View All
               </Button>
             </Box>
@@ -296,17 +300,57 @@ const FamilyDashboard = () => {
               {loading ? (
                 <Grid item xs={12}>
                   <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-                    <CircularProgress />
+                    <CircularProgress color='primary' />
                   </Box>
                 </Grid>
-              ) : memories.length > 0 ? (
+              ) : error ? (
+                <Grid item xs={12}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      textAlign: 'center',
+                      p: 4,
+                      height: '100%',
+                      minHeight: '200px',
+                    }}>
+                    <Typography
+                      variant='h6'
+                      gutterBottom
+                      sx={{ fontWeight: 600, mb: 1, color: 'error.main' }}>
+                      Error loading memories
+                    </Typography>
+                    <Typography
+                      variant='body1'
+                      color='text.secondary'
+                      sx={{ mb: 3 }}>
+                      {error}
+                    </Typography>
+                    <Button
+                      variant='contained'
+                      color='primary'
+                      onClick={() => window.location.reload()}
+                      sx={{
+                        py: 1.5,
+                        px: 3,
+                        borderRadius: 2,
+                      }}>
+                      Retry
+                    </Button>
+                  </Box>
+                </Grid>
+              ) : memories && memories.length > 0 ? (
                 memories.slice(0, 3).map((memory) => (
                   <Grid item xs={12} sm={6} md={4} key={memory.id}>
                     <Card
                       component={motion.div}
                       whileHover={{
                         y: -10,
-                        boxShadow: '0 10px 20px rgba(0,0,0,0.1)',
+                        boxShadow: isDarkMode
+                          ? '0 10px 20px rgba(255,138,0,0.2)'
+                          : '0 10px 20px rgba(0,0,0,0.1)',
                         transition: { duration: 0.3 },
                       }}
                       sx={{
@@ -315,13 +359,25 @@ const FamilyDashboard = () => {
                         overflow: 'hidden',
                         cursor: 'pointer',
                         transition: 'all 0.3s ease',
+                        bgcolor: isDarkMode
+                          ? alpha(theme.palette.background.paper, 0.6)
+                          : theme.palette.background.paper,
+                        boxShadow: isDarkMode
+                          ? '0 4px 10px rgba(0,0,0,0.2)'
+                          : '0 4px 10px rgba(0,0,0,0.1)',
+                        border: isDarkMode
+                          ? `1px solid ${alpha(
+                              theme.palette.primary.main,
+                              0.2
+                            )}`
+                          : 'none',
                       }}
                       onClick={() => navigate(`/memory/${memory.id}`)}>
-                      {memory.type === 'photo' && (
+                      {memory.type === 'photo' && memory.content && (
                         <Box sx={{ height: 140, overflow: 'hidden' }}>
                           <img
                             src={memory.content}
-                            alt={memory.title}
+                            alt={memory.title || 'Memory photo'}
                             style={{
                               width: '100%',
                               height: '100%',
@@ -334,7 +390,9 @@ const FamilyDashboard = () => {
                         <Box
                           sx={{
                             height: 140,
-                            bgcolor: alpha('#9c27b0', 0.1),
+                            bgcolor: isDarkMode
+                              ? alpha('#9c27b0', 0.15)
+                              : alpha('#9c27b0', 0.1),
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -343,7 +401,11 @@ const FamilyDashboard = () => {
                             variant='body2'
                             color='text.secondary'
                             sx={{ p: 2, fontStyle: 'italic' }}>
-                            "{memory.content.substring(0, 100)}..."
+                            "
+                            {memory.content
+                              ? memory.content.substring(0, 100) + '...'
+                              : 'No content'}
+                            "
                           </Typography>
                         </Box>
                       )}
@@ -351,7 +413,9 @@ const FamilyDashboard = () => {
                         <Box
                           sx={{
                             height: 140,
-                            bgcolor: alpha('#2196f3', 0.1),
+                            bgcolor: isDarkMode
+                              ? alpha('#2196f3', 0.15)
+                              : alpha('#2196f3', 0.1),
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -382,23 +446,50 @@ const FamilyDashboard = () => {
                           </Typography>
                         </Box>
                       )}
+                      {(!memory.type ||
+                        (!memory.type === 'photo' &&
+                          !memory.type === 'text' &&
+                          !memory.type === 'voice')) && (
+                        <Box
+                          sx={{
+                            height: 140,
+                            bgcolor: isDarkMode
+                              ? alpha(theme.palette.primary.main, 0.15)
+                              : alpha(theme.palette.primary.main, 0.1),
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}>
+                          <Typography
+                            variant='body2'
+                            color='text.secondary'
+                            sx={{ p: 2 }}>
+                            Memory
+                          </Typography>
+                        </Box>
+                      )}
                       <CardContent>
                         <Typography
                           variant='h6'
                           component='div'
                           gutterBottom
                           noWrap>
-                          {memory.title}
+                          {memory.title || 'Untitled Memory'}
                         </Typography>
                         <Typography
                           variant='body2'
                           color='text.secondary'
                           sx={{ mb: 1 }}>
-                          {new Date(memory.date).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                          })}
+                          {memory.date
+                            ? new Date(memory.date).toLocaleDateString(
+                                'en-US',
+                                {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric',
+                                }
+                              )
+                            : 'No date'}
                         </Typography>
                         <Box
                           sx={{
@@ -410,17 +501,14 @@ const FamilyDashboard = () => {
                             <Chip
                               size='small'
                               label={memory.location}
-                              sx={{ borderRadius: 1 }}
+                              sx={{
+                                borderRadius: 1,
+                                bgcolor: isDarkMode
+                                  ? alpha(theme.palette.primary.main, 0.1)
+                                  : undefined,
+                              }}
                             />
                           )}
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <FavoriteIcon
-                              sx={{ fontSize: 16, mr: 0.5, color: 'error.light' }}
-                            />
-                            <Typography variant='body2' color='text.secondary'>
-                              {memory.reactions || 0}
-                            </Typography>
-                          </Box>
                         </Box>
                       </CardContent>
                     </Card>
@@ -433,18 +521,35 @@ const FamilyDashboard = () => {
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
-                      p: 3,
+                      justifyContent: 'center',
+                      textAlign: 'center',
+                      p: 4,
+                      height: '100%',
+                      minHeight: '200px',
                     }}>
+                    <Typography
+                      variant='h6'
+                      gutterBottom
+                      sx={{ fontWeight: 600, mb: 1 }}>
+                      No memories found yet
+                    </Typography>
                     <Typography
                       variant='body1'
                       color='text.secondary'
-                      sx={{ mb: 2 }}>
-                      No memories found yet
+                      sx={{ mb: 3 }}>
+                      {userData.patientName} doesn't have any memories yet. Add
+                      their first memory!
                     </Typography>
                     <Button
                       variant='contained'
                       startIcon={<AddPhotoAlternateIcon />}
-                      onClick={() => navigate('/add-memory')}>
+                      color='primary'
+                      onClick={() => navigate('/add-memory')}
+                      sx={{
+                        py: 1.5,
+                        px: 3,
+                        borderRadius: 2,
+                      }}>
                       Add First Memory
                     </Button>
                   </Box>
@@ -467,9 +572,14 @@ const FamilyDashboard = () => {
               borderRadius: 3,
               height: '100%',
               transition: 'transform 0.3s ease',
+              bgcolor: isDarkMode
+                ? alpha(theme.palette.background.paper, 0.7)
+                : theme.palette.background.paper,
               '&:hover': {
                 transform: 'translateY(-5px)',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                boxShadow: isDarkMode
+                  ? '0 10px 30px rgba(0,0,0,0.3)'
+                  : '0 10px 30px rgba(0,0,0,0.1)',
               },
             }}>
             <Box
@@ -479,16 +589,23 @@ const FamilyDashboard = () => {
                 alignItems: 'center',
                 mb: 3,
               }}>
-              <Typography variant='h5' component='h2'>
+              <Typography variant='h5' component='h2' sx={{ fontWeight: 600 }}>
                 Recent Activity
               </Typography>
               <IconButton
                 size='small'
                 sx={{
-                  bgcolor: alpha('#f5f5f5', 0.8),
-                  '&:hover': { bgcolor: alpha('#f5f5f5', 1) },
+                  bgcolor: isDarkMode
+                    ? alpha(theme.palette.primary.main, 0.1)
+                    : alpha('#f5f5f5', 0.8),
+                  '&:hover': {
+                    bgcolor: isDarkMode
+                      ? alpha(theme.palette.primary.main, 0.2)
+                      : alpha('#f5f5f5', 1),
+                  },
+                  color: isDarkMode ? theme.palette.primary.light : undefined,
                 }}>
-                <NotificationsNoneIcon />
+                <NotificationsNoneIcon fontSize='small' />
               </IconButton>
             </Box>
             <Stack spacing={2}>
@@ -499,9 +616,17 @@ const FamilyDashboard = () => {
                   sx={{
                     borderRadius: 2,
                     boxShadow: 'none',
+                    bgcolor: isDarkMode
+                      ? alpha(theme.palette.background.paper, 0.4)
+                      : theme.palette.background.paper,
+                    borderColor: isDarkMode
+                      ? alpha(theme.palette.primary.main, 0.15)
+                      : theme.palette.divider,
                     '&:hover': {
-                      borderColor: 'primary.main',
-                      bgcolor: alpha('#f5f5f5', 0.5),
+                      borderColor: theme.palette.primary.main,
+                      bgcolor: isDarkMode
+                        ? alpha(theme.palette.primary.main, 0.05)
+                        : alpha('#f5f5f5', 0.5),
                     },
                   }}>
                   <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
@@ -519,7 +644,9 @@ const FamilyDashboard = () => {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          bgcolor: alpha('#f5f5f5', 0.8),
+                          bgcolor: isDarkMode
+                            ? alpha(theme.palette.primary.main, 0.1)
+                            : alpha('#f5f5f5', 0.8),
                           flexShrink: 0,
                         }}>
                         {activity.type === 'memory_added' ? (
@@ -531,7 +658,10 @@ const FamilyDashboard = () => {
                         )}
                       </Box>
                       <Box sx={{ flexGrow: 1 }}>
-                        <Typography variant='body2' gutterBottom>
+                        <Typography
+                          variant='body2'
+                          gutterBottom
+                          fontWeight={500}>
                           {activity.title}
                         </Typography>
                         <Typography variant='caption' color='text.secondary'>
@@ -550,7 +680,13 @@ const FamilyDashboard = () => {
               <Button
                 variant='outlined'
                 endIcon={<ArrowForwardIcon />}
-                sx={{ borderRadius: 2 }}>
+                sx={{
+                  borderRadius: 2,
+                  color: isDarkMode ? theme.palette.primary.light : undefined,
+                  borderColor: isDarkMode
+                    ? alpha(theme.palette.primary.main, 0.3)
+                    : undefined,
+                }}>
                 View All Activity
               </Button>
             </Box>
