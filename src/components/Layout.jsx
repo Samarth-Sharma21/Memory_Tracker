@@ -32,6 +32,7 @@ import AddPhotoAlternateOutlinedIcon from '@mui/icons-material/AddPhotoAlternate
 import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import SpaOutlinedIcon from '@mui/icons-material/SpaOutlined';
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
@@ -260,6 +261,11 @@ const Layout = () => {
       text: 'Add Memory',
       icon: <AddPhotoAlternateOutlinedIcon />,
       path: '/add-memory',
+    },
+    {
+      text: 'Saved Locations',
+      icon: <LocationOnOutlinedIcon />,
+      path: '/saved-locations',
     },
     {
       text: 'Breathing Exercise',

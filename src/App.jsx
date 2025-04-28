@@ -27,6 +27,7 @@ const HelpCenter = lazy(() => import('./pages/HelpCenter'));
 const BreathingGame = lazy(() => import('./pages/BreathingGame'));
 const Settings = lazy(() => import('./pages/Settings'));
 const PricingPage = lazy(() => import('./pages/PricingPage'));
+const SavedLocations = lazy(() => import('./pages/SavedLocations'));
 
 // Loading component for suspense fallback
 const LoadingFallback = () => (
@@ -134,6 +135,14 @@ function App() {
                     element={
                       <ProtectedRoute userType='any'>
                         <Settings />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path='/saved-locations'
+                    element={
+                      <ProtectedRoute userType='any'>
+                        <SavedLocations />
                       </ProtectedRoute>
                     }
                   />
