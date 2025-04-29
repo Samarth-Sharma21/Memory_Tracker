@@ -29,25 +29,14 @@ const PhotoUploader = ({ onPhotoSelected, defaultImage }) => {
     }
   }, [defaultImage]);
 
-  // Set default cat image if nothing provided
+  // Don't set any default image
   useEffect(() => {
-    if (!previewUrl) {
-      setPreviewUrl(catImage);
+    // Only use the default image if provided by parent component
+    if (defaultImage) {
+      setPreviewUrl(defaultImage);
       setSelectedFile(true);
-      if (onPhotoSelected) {
-        // Create a File object from the cat image, if possible
-        fetch(catImage)
-          .then((res) => res.blob())
-          .then((blob) => {
-            const file = new File([blob], 'cat.jpg', { type: 'image/jpeg' });
-            onPhotoSelected(file);
-          })
-          .catch((err) =>
-            console.log('Could not convert default image to file object', err)
-          );
-      }
     }
-  }, []);
+  }, [defaultImage]);
 
   // Handle drag events
   const handleDragEnter = (e) => {
@@ -153,7 +142,7 @@ const PhotoUploader = ({ onPhotoSelected, defaultImage }) => {
       {defaultImage ? (
         <img
           src={defaultImage}
-          alt="Memory preview"
+          alt='Memory preview'
           style={{
             width: '100%',
             height: '100%',
@@ -165,19 +154,19 @@ const PhotoUploader = ({ onPhotoSelected, defaultImage }) => {
           <AddPhotoAlternateIcon
             sx={{ fontSize: 48, color: 'primary.main', mb: 1 }}
           />
-          <Typography variant="body1" color="textSecondary">
+          <Typography variant='body1' color='textSecondary'>
             Click to upload a photo
           </Typography>
-          <Typography variant="caption" color="textSecondary">
+          <Typography variant='caption' color='textSecondary'>
             Supports: JPG, PNG, GIF
           </Typography>
         </>
       )}
       <input
-        type="file"
+        type='file'
         ref={fileInputRef}
         onChange={handleFileChange}
-        accept="image/*"
+        accept='image/*'
         style={{ display: 'none' }}
       />
     </Box>

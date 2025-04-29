@@ -132,7 +132,7 @@ const MemoryCarousel = ({
   // Render different content based on memory type
   const getMemoryContent = (memory) => {
     if (!memory) return null;
-    
+
     const isDarkMode = theme.palette.mode === 'dark';
 
     switch (memory.type) {
@@ -378,7 +378,7 @@ const MemoryCarousel = ({
               ? alpha(theme.palette.background.paper, 0.7)
               : '#fff',
         }}>
-        <Typography variant="h6" color="text.secondary">
+        <Typography variant='h6' color='text.secondary'>
           Loading memories...
         </Typography>
       </Box>
@@ -402,7 +402,7 @@ const MemoryCarousel = ({
               ? alpha(theme.palette.background.paper, 0.7)
               : '#fff',
         }}>
-        <Typography variant="h6" color="text.secondary">
+        <Typography variant='h6' color='text.secondary'>
           No memories yet. Add your first memory!
         </Typography>
       </Box>

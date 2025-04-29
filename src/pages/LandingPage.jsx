@@ -281,6 +281,7 @@ const LandingPage = () => {
         sx={{
           position: 'relative',
           overflow: 'hidden',
+          marginTop: { xs: 8, sm: 10, md: 10.5 },
           background:
             mode === 'dark'
               ? 'linear-gradient(90deg, #8B4513 0%, #B15500 100%)'

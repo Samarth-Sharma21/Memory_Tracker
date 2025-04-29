@@ -12,7 +12,7 @@ const Logo = ({ size = 'medium', linkTo = '/', withLink = true }) => {
     medium: 'h2',
     large: 'h1',
     extraLarge: {
-      fontSize: '4rem',
+      fontSize: '10rem',
       lineHeight: 1.1,
     },
   };

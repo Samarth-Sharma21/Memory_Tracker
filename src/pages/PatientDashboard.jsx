@@ -143,7 +143,7 @@ const PatientDashboard = () => {
   };
 
   return (
-    <Container maxWidth='lg' sx={{ mt: { xs: 2, md: 4 }, mb: 6 }}>
+    <Container maxWidth='lg' sx={{ mt: { xs: 0, md: 0 }, mb: 6 }}>
       <Box sx={{ maxWidth: '100%', margin: '0 auto' }}>
         <Grid container spacing={4}>
           {/* Greeting Card */}
@@ -308,7 +308,7 @@ const PatientDashboard = () => {
                     boxShadow: isDarkMode
                       ? '0 10px 30px rgba(0, 0, 0, 0.3)'
                       : '0 10px 30px rgba(0, 0, 0, 0.15)',
-                    width: '100%',
+                    width: '900px',
                     height: { xs: 380, sm: 450, md: 500 },
                   }}>
                   <Box

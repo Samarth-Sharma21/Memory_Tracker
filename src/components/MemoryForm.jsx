@@ -68,7 +68,9 @@ const MemoryForm = ({ memoryData, setMemoryData }) => {
   const handleRemovePerson = (personToRemove) => {
     setMemoryData({
       ...memoryData,
-      people: (memoryData.people || []).filter((person) => person !== personToRemove),
+      people: (memoryData.people || []).filter(
+        (person) => person !== personToRemove
+      ),
     });
   };
 
@@ -89,16 +91,16 @@ const MemoryForm = ({ memoryData, setMemoryData }) => {
       }
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('memories')
-        .getPublicUrl(filePath);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('memories').getPublicUrl(filePath);
 
       // Store the full URL in memoryData
       setPhotoPreview(URL.createObjectURL(file));
-      setMemoryData({ 
-        ...memoryData, 
+      setMemoryData({
+        ...memoryData,
         content: publicUrl,
-        type: 'photo' // Ensure type is set to photo
+        type: 'photo', // Ensure type is set to photo
       });
     } catch (error) {
       console.error('Error uploading file:', error.message);
@@ -110,16 +112,16 @@ const MemoryForm = ({ memoryData, setMemoryData }) => {
   const handleVoiceRecorded = async (audioBlob) => {
     try {
       // Convert the audio blob to a file with proper MIME type
-      const audioFile = new File([audioBlob], 'voice-recording.mp3', { type: 'audio/mpeg' });
-      
+      const audioFile = new File([audioBlob], 'voice-recording.mp3', {
+        type: 'audio/mpeg',
+      });
+
       // Upload audio file to Supabase Storage
       const fileName = `${Math.random()}.mp3`;
       const filePath = `public/${fileName}`;
 
       // First, try to delete any existing file with the same name
-      await supabase.storage
-        .from('memories')
-        .remove([filePath]);
+      await supabase.storage.from('memories').remove([filePath]);
 
       // Upload the new file with proper options
       const { error: uploadError } = await supabase.storage
@@ -127,7 +129,7 @@ const MemoryForm = ({ memoryData, setMemoryData }) => {
         .upload(filePath, audioFile, {
           contentType: 'audio/mpeg',
           cacheControl: '3600',
-          upsert: true
+          upsert: true,
         });
 
       if (uploadError) {
@@ -135,9 +137,9 @@ const MemoryForm = ({ memoryData, setMemoryData }) => {
       }
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('memories')
-        .getPublicUrl(filePath);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('memories').getPublicUrl(filePath);
 
       console.log('Uploaded audio URL:', publicUrl);
 
@@ -153,10 +155,10 @@ const MemoryForm = ({ memoryData, setMemoryData }) => {
       }
 
       // Update memory data with the public URL
-      setMemoryData({ 
-        ...memoryData, 
+      setMemoryData({
+        ...memoryData,
         content: publicUrl,
-        type: 'voice' // Ensure type is set to voice
+        type: 'voice', // Ensure type is set to voice
       });
 
       // Show success notification
@@ -275,7 +277,7 @@ const MemoryForm = ({ memoryData, setMemoryData }) => {
                 name='location'
                 value={memoryData.location || ''}
                 onChange={handleInputChange}
-                placeholder="Enter or select a location"
+                placeholder='Enter or select a location'
                 InputProps={{
                   startAdornment: (
                     <LocationOnIcon color='action' sx={{ mr: 1 }} />
@@ -427,18 +429,7 @@ const MemoryForm = ({ memoryData, setMemoryData }) => {
               )}
             </Grid>
 
-            <Grid item xs={12}>
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-                <Button
-                  type='submit'
-                  variant='contained'
-                  color='primary'
-                  size='large'
-                  sx={{ px: 4 }}>
-                  Save Memory
-                </Button>
-              </Box>
-            </Grid>
+            {/* Save button will be added in the parent component after all steps are completed */}
           </Grid>
         </form>
       </Paper>

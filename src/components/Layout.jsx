@@ -173,6 +173,7 @@ const Layout = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [headerVisible, setHeaderVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [showSidePanelLogo, setShowSidePanelLogo] = useState(false);
   const location = useLocation();
   const { user, logout } = useAuth();
 
@@ -188,12 +189,16 @@ const Layout = () => {
       if (currentScrollY < 30) {
         // Always show header near the top of the page
         setHeaderVisible(true);
+        setShowSidePanelLogo(false);
       } else if (currentScrollY > lastScrollY) {
-        // Scrolling down - hide header
+        // Scrolling down - hide header and show side panel logo
         setHeaderVisible(false);
+        setShowSidePanelLogo(true);
       } else {
         // Scrolling up - show header
         setHeaderVisible(true);
+        // Keep side panel logo visible when scrolling up unless at the top
+        setShowSidePanelLogo(currentScrollY > 100);
       }
 
       setLastScrollY(currentScrollY);
@@ -287,7 +292,7 @@ const Layout = () => {
   const drawer = (
     <Box
       sx={{
-        mt: { xs: 0, md: 1 },
+        mt: { xs: 0, md: 5},
         py: 0.5,
         height: '100%',
         display: 'flex',
@@ -303,15 +308,24 @@ const Layout = () => {
             alignItems: 'center',
             justifyContent: 'flex-start',
           }}>
-          <Logo size='small' withLink={false} />
+          <Logo size='medium' withLink={false} />
         </Box>
       </Box>
 
-      <Divider sx={{ mb: 0.5, opacity: 0.6 }} />
+      {/* <Divider sx={{ mb: 0.5, opacity: 0.6 }} /> */}
 
       {/* Main Navigation */}
       <NavSection>
-        <Typography sx={{ px: 3, mb: 0.5 }}>Main</Typography>
+        {showSidePanelLogo ? (
+          <Box sx={{ px: 2, mb: 0, mt: -4 }}>
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}>
+              <Logo size='medium' withLink={false} />
+            </motion.div>
+          </Box>
+        ) : null}
       </NavSection>
 
       <List component='nav' sx={{ px: 1 }}>
@@ -369,6 +383,8 @@ const Layout = () => {
         <Divider sx={{ my: 1, opacity: 0.6 }} />
         {user && (
           <Box
+            component={RouterLink}
+            to='/settings'
             sx={{
               display: 'flex',
               alignItems: 'center',
@@ -377,6 +393,8 @@ const Layout = () => {
               py: 1.5,
               borderRadius: 3,
               transition: 'all 0.3s ease',
+              textDecoration: 'none',
+              color: 'inherit',
               '&:hover': {
                 backgroundColor: alpha(muiTheme.palette.primary.main, 0.08),
               },
@@ -389,14 +407,14 @@ const Layout = () => {
                 height: 40,
                 boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
               }}>
-              {user.name?.charAt(0) || 'U'}
+              {user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
             </Avatar>
             <Box sx={{ overflow: 'hidden' }}>
               <Typography variant='subtitle2' noWrap sx={{ fontWeight: 600 }}>
-                {user.name}
+                {user?.name || 'User'}
               </Typography>
               <Typography variant='caption' color='text.secondary' noWrap>
-                {user.email}
+                {user?.email || 'user@example.com'}
               </Typography>
             </Box>
           </Box>
@@ -434,7 +452,9 @@ const Layout = () => {
         bgcolor: 'background.default',
       }}>
       <CssBaseline />
-      <StyledAppBar visible={headerVisible}>
+      <StyledAppBar
+        visible={headerVisible}
+        sx={{ zIndex: (theme) => theme.zIndex.drawer + 2 }}>
         <StyledToolbar>
           <StyledLogoContainer>
             <IconButton
@@ -446,8 +466,6 @@ const Layout = () => {
               <MenuIcon />
             </IconButton>
             <Box
-              component={RouterLink}
-              to='/'
               sx={{
                 textDecoration: 'none',
                 display: 'flex',
@@ -461,7 +479,7 @@ const Layout = () => {
                 transformOrigin: 'left center',
                 mx: { xs: 2, sm: 0 },
               }}>
-              <Logo size='medium' withLink={false} />
+              <Logo size='medium' withLink={true} />
             </Box>
           </StyledLogoContainer>
 
@@ -483,7 +501,6 @@ const Layout = () => {
                 )}
               </IconButton>
             </Tooltip>
-
             <Tooltip title='Add Memory'>
               <IconButton
                 component={RouterLink}
@@ -491,9 +508,9 @@ const Layout = () => {
                 color='primary'
                 sx={{
                   display: { xs: 'flex', md: 'none' },
-                  bgcolor: alpha(muiTheme.palette.primary.main, 0.1),
+                  bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1),
                   '&:hover': {
-                    bgcolor: alpha(muiTheme.palette.primary.main, 0.2),
+                    bgcolor: (theme) => alpha(theme.palette.primary.main, 0.2),
                   },
                 }}>
                 <AddPhotoAlternateOutlinedIcon />
@@ -510,17 +527,17 @@ const Layout = () => {
                   borderRadius: 2,
                   bgcolor: 'background.paper',
                   '&:hover': {
-                    bgcolor: alpha(muiTheme.palette.primary.main, 0.05),
+                    bgcolor: (theme) => alpha(theme.palette.primary.main, 0.05),
                   },
                 }}
-                aria-controls={Boolean(anchorEl) ? 'account-menu' : undefined}
+                aria-controls={anchorEl ? 'account-menu' : undefined}
                 aria-haspopup='true'
-                aria-expanded={Boolean(anchorEl) ? 'true' : undefined}>
+                aria-expanded={anchorEl ? 'true' : undefined}>
                 <Avatar
                   sx={{
                     width: 36,
                     height: 36,
-                    bgcolor: muiTheme.palette.primary.main,
+                    bgcolor: (theme) => theme.palette.primary.main,
                     fontSize: '1rem',
                     fontWeight: 600,
                   }}>
@@ -585,21 +602,21 @@ const Layout = () => {
           </Menu>
         </StyledToolbar>
       </StyledAppBar>
-
-      <Box component='nav'>
+      <Box component='nav' sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         {isMobile ? (
           <Drawer
             variant='temporary'
             open={mobileOpen}
             onClose={handleDrawerToggle}
-            ModalProps={{
-              keepMounted: true, // Better open performance on mobile.
-            }}
+            ModalProps={{ keepMounted: true }}
             sx={{
               display: { xs: 'block', md: 'none' },
               '& .MuiDrawer-paper': {
                 width: drawerWidth,
                 boxSizing: 'border-box',
+                mt: '65px',
+                top: 0,
+                height: 'calc(100% - 65px)',
               },
             }}>
             {drawer}
@@ -607,15 +624,12 @@ const Layout = () => {
         ) : (
           <StyledDrawer
             variant='permanent'
-            sx={{
-              display: { xs: 'none', md: 'block' },
-            }}
+            sx={{ display: { xs: 'none', md: 'block' } }}
             open>
             {drawer}
           </StyledDrawer>
         )}
       </Box>
-
       <Box
         component='main'
         sx={{
@@ -623,7 +637,7 @@ const Layout = () => {
           p: 0,
           width: { md: `calc(100% - ${drawerWidth}px)` },
           minHeight: '100vh',
-          pt: { xs: '60px', sm: '65px' },
+          pt: { xs: '70px', sm: '75px' },
           transition: 'padding-top 0.3s ease',
         }}>
         <motion.div
