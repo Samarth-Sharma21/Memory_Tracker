@@ -25,6 +25,7 @@ import TimelineIcon from '@mui/icons-material/Timeline';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import PeopleIcon from '@mui/icons-material/People';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
+import TextSnippetIcon from '@mui/icons-material/TextSnippet';
 import {
   MemoryTimeline,
   BreathingExercise,
@@ -124,17 +125,24 @@ const PatientDashboard = () => {
       },
     },
   };
+  useEffect(() => {
+    const updateGreeting = () => {
+      const hour = new Date().getHours(); // uses user's local time
 
-  const getGreetingMessage = () => {
-    const currentHour = new Date().getHours();
-    if (currentHour < 12) {
-      return 'Good morning!';
-    } else if (currentHour < 18) {
-      return 'Good afternoon!';
-    } else {
-      return 'Good evening!';
-    }
-  };
+      if (hour >= 17) {
+        setGreeting('Good evening!');
+      } else if (hour >= 12) {
+        setGreeting('Good afternoon!');
+      } else {
+        setGreeting('Good morning!');
+      }
+    };
+
+    updateGreeting(); // set immediately on mount
+    const interval = setInterval(updateGreeting, 60 * 1000); // update every minute
+
+    return () => clearInterval(interval);
+  }, []);
 
   const userData = {
     name: user?.name || 'Guest', // Default name if undefined
@@ -212,7 +220,7 @@ const PatientDashboard = () => {
                         display: 'flex',
                         alignItems: 'center',
                       }}>
-                      {getGreetingMessage()}{' '}
+                      {greeting}{' '}
                       <Box
                         component='span'
                         sx={{ pl: 1, fontWeight: 400, opacity: 0.9 }}>
@@ -693,12 +701,62 @@ const PatientDashboard = () => {
                             },
                           }}
                           onClick={() => handleViewMemory(memory.id)}>
-                          <CardMedia
-                            component='img'
-                            height='140'
-                            image={memory.content || catImage}
-                            alt={memory.title || 'Memory'}
-                          />
+                          {memory.type === 'text' ? (
+                            <Box
+                              sx={{
+                                p: 3,
+                                bgcolor: alpha('#9c27b0', 0.05),
+                                height: '140px',
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                justifyContent: 'center',
+                                flexDirection: 'column',
+                                position: 'relative',
+                                overflow: 'hidden',
+                              }}>
+                              <TextSnippetIcon
+                                sx={{
+                                  fontSize: 30,
+                                  color: alpha('#9c27b0', 0.6),
+                                  mb: 2,
+                                }}
+                              />
+                              <Typography
+                                variant='body1'
+                                color='text.primary'
+                                sx={{
+                                  fontStyle: 'italic',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  display: '-webkit-box',
+                                  WebkitLineClamp: 3,
+                                  WebkitBoxOrient: 'vertical',
+                                }}>
+                                "{memory.content}"
+                              </Typography>
+                              <Box
+                                sx={{
+                                  position: 'absolute',
+                                  top: 10,
+                                  right: 10,
+                                  bgcolor: 'rgba(255, 255, 255, 0.8)',
+                                  borderRadius: '50%',
+                                  p: 0.5,
+                                }}>
+                                <TextSnippetIcon
+                                  color='primary'
+                                  fontSize='small'
+                                />
+                              </Box>
+                            </Box>
+                          ) : (
+                            <CardMedia
+                              component='img'
+                              height='140'
+                              image={memory.content || catImage}
+                              alt={memory.title || 'Memory'}
+                            />
+                          )}
                           <CardContent sx={{ flexGrow: 1 }}>
                             <Typography
                               variant='h6'

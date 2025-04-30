@@ -292,7 +292,7 @@ const Layout = () => {
   const drawer = (
     <Box
       sx={{
-        mt: { xs: 0, md: 5},
+        mt: { xs: 0, md: 5 },
         py: 0.5,
         height: '100%',
         display: 'flex',
