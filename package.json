@@ -18,7 +18,10 @@
     "framer-motion": "^12.6.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+<<<<<<< HEAD
     "react-draggable": "^4.4.6",
+=======
+>>>>>>> 5918ebb3bce701f511c3c4c5ca8b2e0c300ef792
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.4.1"
   },
