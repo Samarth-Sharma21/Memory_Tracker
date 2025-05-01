@@ -132,6 +132,7 @@ const MemoryCarousel = ({
   // Render different content based on memory type
   const getMemoryContent = (memory) => {
     if (!memory) return null;
+
     const isDarkMode = theme.palette.mode === 'dark';
 
     switch (memory.type) {
