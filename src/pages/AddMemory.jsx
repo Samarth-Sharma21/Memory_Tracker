@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { supabase } from './server';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useMemory } from '../contexts/MemoryContext';
@@ -19,6 +18,9 @@ import {
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import { MemoryForm } from '../components';
+import { getRecentLocations, createMemory } from '../backend/memoryService';
+import { getCurrentUser } from '../backend/authService';
+import { getFamilyMemberDetails } from '../backend/userService';
 
 const AddMemory = () => {
   const navigate = useNavigate();
@@ -43,9 +45,7 @@ const AddMemory = () => {
   useEffect(() => {
     const fetchRecentLocations = async () => {
       try {
-        const {
-          data: { user: authUser },
-        } = await supabase.auth.getUser();
+        const { data: authUser } = await getCurrentUser();
         if (!authUser) return;
 
         // Determine user ID - handle both patient and family members
@@ -53,32 +53,12 @@ const AddMemory = () => {
 
         // If user is a family member, we need to get patient ID
         if (user?.type === 'family') {
-          const { data: familyData, error: familyError } = await supabase
-            .from('family_members')
-            .select('patient_id')
-            .eq('id', authUser.id)
-            .single();
-
-          if (familyError) throw familyError;
+          const { data: familyData } = await getFamilyMemberDetails(authUser.id);
           userId = familyData.patient_id;
         }
 
-        const { data, error } = await supabase
-          .from('memories')
-          .select('location')
-          .eq('user_id', userId)
-          .not('location', 'is', null)
-          .not('location', 'eq', '')
-          .order('created_at', { ascending: false })
-          .limit(10);
-
-        if (error) throw error;
-
-        // Get unique locations
-        const uniqueLocations = [
-          ...new Set(data.map((memory) => memory.location)),
-        ];
-        setRecentLocations(uniqueLocations);
+        const { data: locations } = await getRecentLocations(userId);
+        setRecentLocations(locations);
       } catch (err) {
         console.error('Error fetching recent locations:', err.message);
       }
@@ -97,11 +77,8 @@ const AddMemory = () => {
     if (activeStep === steps.length - 1) {
       try {
         // Get authenticated user
-        const {
-          data: { user: authUser },
-          error: userError,
-        } = await supabase.auth.getUser();
-        if (userError || !authUser) {
+        const { data: authUser } = await getCurrentUser();
+        if (!authUser) {
           throw new Error('User not authenticated! Please log in.');
         }
 
@@ -110,34 +87,22 @@ const AddMemory = () => {
         let userId = authUser.id;
 
         if (user?.type === 'family') {
-          const { data: familyData, error: familyError } = await supabase
-            .from('family_members')
-            .select('patient_id')
-            .eq('id', authUser.id)
-            .single();
-
-          if (familyError || !familyData) {
-            throw new Error('Could not find connected patient');
-          }
+          const { data: familyData } = await getFamilyMemberDetails(authUser.id);
           userId = familyData.patient_id;
         }
 
-        // Insert memory into Supabase without the created_by field
-        const { error } = await supabase.from('memories').insert([
-          {
-            user_id: userId, // The patient ID (whose memory it is)
-            title: memoryData.title,
-            description: memoryData.description,
-            content: memoryData.content,
-            date: memoryData.date,
-            type: memoryData.type,
-            location: memoryData.location,
-            people: memoryData.people,
-            filter: memoryData.filter,
-          },
-        ]);
-
-        if (error) throw error;
+        // Create memory
+        await createMemory({
+          user_id: userId,
+          title: memoryData.title,
+          description: memoryData.description,
+          content: memoryData.content,
+          date: memoryData.date,
+          type: memoryData.type,
+          location: memoryData.location,
+          people: memoryData.people,
+          filter: memoryData.filter,
+        });
 
         // Trigger refresh of memories in the MemoryContext
         triggerRefresh();
