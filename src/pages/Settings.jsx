@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -32,9 +32,12 @@ import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import { AccessibilityControls, EmergencyContact } from '../components';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
+import { getPatientProfile, updatePatientProfile } from '../backend/settingsService';
 
 const Settings = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
   const [notification, setNotification] = useState({
     open: false,
@@ -45,16 +48,51 @@ const Settings = () => {
   // Get theme from context
   const { mode, toggleTheme } = useTheme();
 
-  // Mock user data
+  // User data from auth context
   const [userData, setUserData] = useState({
-    name: 'Alice Johnson',
-    email: 'alice.johnson@example.com',
-    phone: '(555) 123-4567',
-    fontSize: 16,
-    highContrast: false,
-    notifications: true,
-    reminderFrequency: 'daily',
+    name: user?.name || '',
+    email: user?.email || '',
+    mobile: user?.mobile || '',
+    emergencyContact: {
+      name: '',
+      phone: '',
+      relationship: '',
+    },
+    notifications: {
+      email: true,
+      push: true,
+      reminders: true,
+    },
+    accessibility: {
+      fontSize: 16,
+      highContrast: false,
+      screenReader: false,
+    },
   });
+
+  // Fetch patient profile on component mount
+  useEffect(() => {
+    const fetchPatientProfile = async () => {
+      if (!user) return;
+
+      try {
+        const result = await getPatientProfile(user.id);
+        if (result.success) {
+          setUserData(prev => ({
+            ...prev,
+            name: result.data.name || prev.name,
+            email: result.data.email || prev.email,
+            mobile: result.data.mobile || prev.mobile,
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching patient profile:', error);
+        showNotification('Failed to load profile', 'error');
+      }
+    };
+
+    fetchPatientProfile();
+  }, [user]);
 
   const handleBack = () => {
     navigate(-1);
@@ -75,19 +113,39 @@ const Settings = () => {
   };
 
   const handleFontSizeChange = (event, newValue) => {
-    setUserData({ ...userData, fontSize: newValue });
+    setUserData({ ...userData, accessibility: { ...userData.accessibility, fontSize: newValue } });
   };
 
-  const handleSaveProfile = () => {
-    // In a real app, this would save to a backend
-    setNotification({
-      open: true,
-      message: 'Profile updated successfully',
-      severity: 'success',
-    });
-    setTimeout(() => {
-      setNotification({ ...notification, open: false });
-    }, 3000);
+  const handleSaveProfile = async () => {
+    if (!user) {
+      showNotification('User not authenticated', 'error');
+      return;
+    }
+
+    try {
+      const result = await updatePatientProfile(user.id, {
+        name: userData.name,
+        email: userData.email,
+        mobile: userData.mobile,
+      });
+
+      if (result.success) {
+        showNotification('Profile updated successfully', 'success');
+      } else {
+        throw new Error('Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      showNotification('Failed to save profile', 'error');
+    }
+  };
+
+  const showNotification = (message, severity) => {
+    setNotification({ open: true, message, severity });
+  };
+
+  const closeNotification = () => {
+    setNotification({ ...notification, open: false });
   };
 
   return (
@@ -177,9 +235,9 @@ const Settings = () => {
                     <Grid item xs={12}>
                       <TextField
                         fullWidth
-                        label='Phone Number'
-                        name='phone'
-                        value={userData.phone}
+                        label='Mobile Number'
+                        name='mobile'
+                        value={userData.mobile}
                         onChange={handleInputChange}
                       />
                     </Grid>
@@ -236,10 +294,10 @@ const Settings = () => {
 
               <Box sx={{ mb: 4 }}>
                 <Typography id='font-size-slider' gutterBottom>
-                  Font Size: {userData.fontSize}px
+                  Font Size: {userData.accessibility.fontSize}px
                 </Typography>
                 <Slider
-                  value={userData.fontSize}
+                  value={userData.accessibility.fontSize}
                   onChange={handleFontSizeChange}
                   aria-labelledby='font-size-slider'
                   valueLabelDisplay='auto'
@@ -252,7 +310,7 @@ const Settings = () => {
               <FormControlLabel
                 control={
                   <Switch
-                    checked={userData.highContrast}
+                    checked={userData.accessibility.highContrast}
                     onChange={handleSwitchChange}
                     name='highContrast'
                     color='primary'
@@ -288,32 +346,36 @@ const Settings = () => {
               <FormControlLabel
                 control={
                   <Switch
-                    checked={userData.notifications}
+                    checked={userData.notifications.email}
                     onChange={handleSwitchChange}
-                    name='notifications'
+                    name='notifications.email'
                     color='primary'
                   />
                 }
-                label='Enable Notifications'
+                label='Email Notifications'
               />
-              <Box sx={{ mt: 3 }}>
-                <FormControl fullWidth disabled={!userData.notifications}>
-                  <InputLabel id='reminder-frequency-label'>
-                    Reminder Frequency
-                  </InputLabel>
-                  <Select
-                    labelId='reminder-frequency-label'
-                    id='reminder-frequency'
-                    value={userData.reminderFrequency}
-                    label='Reminder Frequency'
-                    name='reminderFrequency'
-                    onChange={handleInputChange}>
-                    <MenuItem value='daily'>Daily</MenuItem>
-                    <MenuItem value='weekly'>Weekly</MenuItem>
-                    <MenuItem value='monthly'>Monthly</MenuItem>
-                  </Select>
-                </FormControl>
-              </Box>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={userData.notifications.push}
+                    onChange={handleSwitchChange}
+                    name='notifications.push'
+                    color='primary'
+                  />
+                }
+                label='Push Notifications'
+              />
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={userData.notifications.reminders}
+                    onChange={handleSwitchChange}
+                    name='notifications.reminders'
+                    color='primary'
+                  />
+                }
+                label='Reminder Notifications'
+              />
               <Box sx={{ mt: 3 }}>
                 <Typography variant='body2' color='text.secondary'>
                   Notifications help you remember to add new memories and stay

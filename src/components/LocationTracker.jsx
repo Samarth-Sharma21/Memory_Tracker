@@ -15,6 +15,7 @@ import {
   Alert,
   Snackbar,
   CircularProgress,
+  Tooltip,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
@@ -23,31 +24,15 @@ import ShareIcon from '@mui/icons-material/Share';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
+import { saveLocationToDB, getPatientLocations, deleteLocation, updateLocation } from '../backend/locationService';
+import { useAuth } from '../contexts/AuthContext';
 
 const LocationTracker = () => {
+  const { user } = useAuth();
   const [currentLocation, setCurrentLocation] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [savedLocations, setSavedLocations] = useState([
-    {
-      id: 1,
-      name: 'Home',
-      address: '123 Main Street, Anytown, USA',
-      isHome: true,
-    },
-    {
-      id: 2,
-      name: "Doctor's Office",
-      address: '456 Medical Plaza, Anytown, USA',
-      isHome: false,
-    },
-    {
-      id: 3,
-      name: 'Favorite Park',
-      address: '789 Green Avenue, Anytown, USA',
-      isHome: false,
-    },
-  ]);
+  const [savedLocations, setSavedLocations] = useState([]);
   const [newLocationName, setNewLocationName] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [notification, setNotification] = useState({
@@ -92,25 +77,61 @@ const LocationTracker = () => {
   };
 
   // Save current location
-  const saveCurrentLocation = () => {
+  const saveCurrentLocation = async () => {
     if (!currentLocation || !newLocationName.trim()) {
       showNotification('Please provide a name for this location', 'error');
       return;
     }
 
-    const newLocation = {
-      id: Date.now(),
-      name: newLocationName,
-      address: currentLocation.address,
-      lat: currentLocation.lat,
-      lng: currentLocation.lng,
-      isHome: false,
-    };
+    if (!user) {
+      showNotification('User not authenticated', 'error');
+      return;
+    }
 
-    setSavedLocations([...savedLocations, newLocation]);
-    setNewLocationName('');
-    setShowAddForm(false);
-    showNotification('Location saved successfully', 'success');
+    try {
+      console.log('User object details:', {
+        id: user.id,
+        type: user.type,
+        email: user.email
+      });
+      
+      console.log('Current location details:', {
+        address: currentLocation.address,
+        lat: currentLocation.lat,
+        lng: currentLocation.lng
+      });
+
+      const locationData = {
+        patient_id: user.id,
+        name: newLocationName,
+        address: currentLocation.address,
+        lat: currentLocation.lat,
+        lng: currentLocation.lng,
+        is_home: false
+      };
+      console.log('Prepared location data for database:', locationData);
+
+      const result = await saveLocationToDB(locationData);
+      console.log('Database save result:', result);
+      
+      if (result.success && result.data) {
+        console.log('Successfully saved location to database:', result.data);
+        setSavedLocations(prevLocations => {
+          const newLocations = [...prevLocations, result.data];
+          console.log('Updated locations state:', newLocations);
+          return newLocations;
+        });
+        setNewLocationName('');
+        setShowAddForm(false);
+        showNotification('Location saved successfully', 'success');
+      } else {
+        console.error('Save operation failed:', result.error);
+        throw new Error(result.error || 'Failed to save location');
+      }
+    } catch (error) {
+      console.error('Error in saveCurrentLocation:', error);
+      showNotification('Failed to save location: ' + error.message, 'error');
+    }
   };
 
   // Set a location as home
@@ -125,9 +146,19 @@ const LocationTracker = () => {
   };
 
   // Delete a saved location
-  const deleteLocation = (id) => {
-    setSavedLocations(savedLocations.filter((location) => location.id !== id));
-    showNotification('Location deleted', 'success');
+  const handleDeleteLocation = async (id) => {
+    try {
+      const result = await deleteLocation(id);
+      if (result.success) {
+        setSavedLocations(savedLocations.filter((location) => location.id !== id));
+        showNotification('Location deleted', 'success');
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Error deleting location:', error);
+      showNotification('Failed to delete location', 'error');
+    }
   };
 
   // Share a location
@@ -159,6 +190,34 @@ const LocationTracker = () => {
     setNotification({ ...notification, open: false });
   };
 
+  const fetchLocations = async () => {
+    if (!user) {
+      console.log('No user found, cannot fetch locations');
+      showNotification('Please log in to view locations', 'error');
+      return;
+    }
+    try {
+      console.log('Starting to fetch locations for user:', user.id);
+      const result = await getPatientLocations(user.id);
+      console.log('Fetch result:', result);
+      
+      if (result.success) {
+        console.log('Setting saved locations:', result.data);
+        setSavedLocations(result.data);
+      } else {
+        console.error('Failed to fetch locations:', result.error);
+        showNotification('Failed to fetch locations', 'error');
+      }
+    } catch (error) {
+      console.error('Error in fetchLocations:', error);
+      showNotification('Error fetching locations', 'error');
+    }
+  };
+
+  useEffect(() => {
+    fetchLocations();
+  }, [user]);
+
   return (
     <Box sx={{ width: '100%' }}>
       <Typography variant='h4' component='h2' gutterBottom>
@@ -177,10 +236,11 @@ const LocationTracker = () => {
             startIcon={<MyLocationIcon />}
             onClick={getCurrentLocation}
             disabled={loading}
+            aria-label="Get current location"
             sx={{ mr: 2 }}>
             {loading ? 'Detecting...' : 'Get My Location'}
           </Button>
-          {loading && <CircularProgress size={24} sx={{ ml: 1 }} />}
+          {loading && <CircularProgress size={24} sx={{ ml: 1 }} aria-label="Loading location" />}
         </Box>
 
         {error && (
@@ -265,7 +325,7 @@ const LocationTracker = () => {
                       : 'transparent',
                     borderRadius: 1,
                   }}>
-                  <ListItemIcon>
+                  <ListItemIcon aria-hidden="true">
                     {location.isHome ? (
                       <HomeIcon color='primary' />
                     ) : (
@@ -283,7 +343,8 @@ const LocationTracker = () => {
                     <Tooltip title='Share Location'>
                       <IconButton
                         edge='end'
-                        onClick={() => shareLocation(location)}>
+                        onClick={() => shareLocation(location)}
+                        aria-label={`Share ${location.name}`}>
                         <ShareIcon />
                       </IconButton>
                     </Tooltip>
@@ -291,7 +352,8 @@ const LocationTracker = () => {
                       <Tooltip title='Set as Home'>
                         <IconButton
                           edge='end'
-                          onClick={() => setAsHome(location.id)}>
+                          onClick={() => setAsHome(location.id)}
+                          aria-label={`Set ${location.name} as home`}>
                           <HomeIcon />
                         </IconButton>
                       </Tooltip>
@@ -299,7 +361,8 @@ const LocationTracker = () => {
                     <Tooltip title='Delete Location'>
                       <IconButton
                         edge='end'
-                        onClick={() => deleteLocation(location.id)}>
+                        onClick={() => deleteLocation(location.id)}
+                        aria-label={`Delete ${location.name}`}>
                         <DeleteIcon />
                       </IconButton>
                     </Tooltip>
