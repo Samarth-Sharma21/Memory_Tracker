@@ -37,6 +37,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { saveLocation, getSavedLocations, updateSavedLocation, deleteSavedLocation } from '../backend/savedLocationService';
 
 const SavedLocations = () => {
   const navigate = useNavigate();
@@ -45,21 +46,20 @@ const SavedLocations = () => {
   const isDarkMode = theme.palette.mode === 'dark';
 
   // State for saved locations
-  const [locations, setLocations] = useState(() => {
-    const savedLocations = localStorage.getItem('savedLocations');
-    return savedLocations ? JSON.parse(savedLocations) : [];
-  });
+  const [locations, setLocations] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // State for location form
   const [newLocation, setNewLocation] = useState({
     name: '',
     address: '',
-    notes: '',
+    lat: null,
+    lng: null,
   });
 
   // UI states
   const [openDialog, setOpenDialog] = useState(false);
-  const [editIndex, setEditIndex] = useState(null);
+  const [editingLocation, setEditingLocation] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [notification, setNotification] = useState({
     open: false,
@@ -67,26 +67,64 @@ const SavedLocations = () => {
     severity: 'success',
   });
 
-  // Save locations to localStorage whenever they change
+  // Fetch saved locations
   useEffect(() => {
-    localStorage.setItem('savedLocations', JSON.stringify(locations));
-  }, [locations]);
+    const fetchLocations = async () => {
+      if (!user) return;
+      
+      try {
+        setLoading(true);
+        const result = await getSavedLocations(user.id);
+        if (result.success) {
+          setLocations(result.data);
+        } else {
+          throw new Error(result.error);
+        }
+      } catch (error) {
+        console.error('Error fetching locations:', error);
+        setNotification({
+          open: true,
+          message: 'Failed to fetch locations',
+          severity: 'error',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleOpenDialog = (index = null) => {
-    if (index !== null) {
-      // Edit existing location
-      setNewLocation(locations[index]);
-      setEditIndex(index);
+    fetchLocations();
+  }, [user]);
+
+  const handleOpenDialog = (location = null) => {
+    if (location) {
+      setEditingLocation(location);
+      setNewLocation({
+        name: location.name,
+        address: location.address,
+        lat: location.lat,
+        lng: location.lng,
+      });
     } else {
-      // Add new location
-      setNewLocation({ name: '', address: '', notes: '' });
-      setEditIndex(null);
+      setEditingLocation(null);
+      setNewLocation({
+        name: '',
+        address: '',
+        lat: null,
+        lng: null,
+      });
     }
     setOpenDialog(true);
   };
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
+    setEditingLocation(null);
+    setNewLocation({
+      name: '',
+      address: '',
+      lat: null,
+      lng: null,
+    });
   };
 
   const handleInputChange = (e) => {
@@ -94,57 +132,87 @@ const SavedLocations = () => {
     setNewLocation({ ...newLocation, [name]: value });
   };
 
-  const handleSaveLocation = () => {
-    // Validate inputs
-    if (!newLocation.name || !newLocation.address) {
+  const handleSaveLocation = async () => {
+    if (!user) {
       setNotification({
         open: true,
-        message: 'Name and address are required',
+        message: 'User not authenticated',
         severity: 'error',
       });
       return;
     }
 
-    if (editIndex !== null) {
-      // Update existing location
-      const updatedLocations = [...locations];
-      updatedLocations[editIndex] = newLocation;
-      setLocations(updatedLocations);
+    try {
+      // If lat/lng are not provided, get them from the address
+      let locationData = { ...newLocation };
+      if (!locationData.lat || !locationData.lng) {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationData.address)}`
+        );
+        const data = await response.json();
+        
+        if (data && data.length > 0) {
+          locationData.lat = parseFloat(data[0].lat);
+          locationData.lng = parseFloat(data[0].lon);
+        } else {
+          throw new Error('Could not find coordinates for this address');
+        }
+      }
+
+      locationData.patient_id = user.id;
+
+      let result;
+      if (editingLocation) {
+        result = await updateSavedLocation(editingLocation.id, locationData);
+      } else {
+        result = await saveLocation(locationData);
+      }
+
+      if (result.success) {
+        const updatedLocations = editingLocation
+          ? locations.map((loc) => (loc.id === editingLocation.id ? result.data : loc))
+          : [...locations, result.data];
+        setLocations(updatedLocations);
+        setNotification({
+          open: true,
+          message: editingLocation ? 'Location updated successfully' : 'Location saved successfully',
+          severity: 'success',
+        });
+        handleCloseDialog();
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Error saving location:', error);
       setNotification({
         open: true,
-        message: 'Location updated successfully',
-        severity: 'success',
-      });
-    } else {
-      // Add new location
-      setLocations([...locations, newLocation]);
-      setNotification({
-        open: true,
-        message: 'Location saved successfully',
-        severity: 'success',
+        message: error.message || 'Failed to save location',
+        severity: 'error',
       });
     }
-
-    handleCloseDialog();
   };
 
-  const handleDeleteLocation = (index) => {
-    const updatedLocations = locations.filter((_, i) => i !== index);
-    setLocations(updatedLocations);
-    setNotification({
-      open: true,
-      message: 'Location deleted',
-      severity: 'info',
-    });
-  };
-
-  const handleNavigate = (address) => {
-    // Open Google Maps with the address
-    const encodedAddress = encodeURIComponent(address);
-    window.open(
-      `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`,
-      '_blank'
-    );
+  const handleDeleteLocation = async (id) => {
+    try {
+      const result = await deleteSavedLocation(id);
+      if (result.success) {
+        setLocations(locations.filter((loc) => loc.id !== id));
+        setNotification({
+          open: true,
+          message: 'Location deleted successfully',
+          severity: 'success',
+        });
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Error deleting location:', error);
+      setNotification({
+        open: true,
+        message: error.message || 'Failed to delete location',
+        severity: 'error',
+      });
+    }
   };
 
   const handleGetCurrentLocation = () => {
@@ -162,6 +230,8 @@ const SavedLocations = () => {
               setNewLocation({
                 ...newLocation,
                 address: address,
+                lat: latitude,
+                lng: longitude,
               });
             })
             .catch((error) => {
@@ -169,6 +239,8 @@ const SavedLocations = () => {
               setNewLocation({
                 ...newLocation,
                 address: `${latitude}, ${longitude}`,
+                lat: latitude,
+                lng: longitude,
               });
             });
         },
@@ -190,16 +262,19 @@ const SavedLocations = () => {
     }
   };
 
-  const handleCloseNotification = () => {
-    setNotification({ ...notification, open: false });
+  const handleNavigate = (address) => {
+    const encodedAddress = encodeURIComponent(address);
+    window.open(
+      `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`,
+      '_blank'
+    );
   };
 
   // Filter locations based on search term
   const filteredLocations = locations.filter(
     (location) =>
       location.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      location.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      location.notes.toLowerCase().includes(searchTerm.toLowerCase())
+      location.address.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -225,10 +300,10 @@ const SavedLocations = () => {
         <Snackbar
           open={notification.open}
           autoHideDuration={5000}
-          onClose={handleCloseNotification}
+          onClose={() => setNotification({ ...notification, open: false })}
           anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
           <Alert
-            onClose={handleCloseNotification}
+            onClose={() => setNotification({ ...notification, open: false })}
             severity={notification.severity}
             sx={{ width: '100%' }}>
             {notification.message}
@@ -291,9 +366,13 @@ const SavedLocations = () => {
 
         {/* Locations List */}
         <Grid container spacing={3}>
-          {filteredLocations.length > 0 ? (
-            filteredLocations.map((location, index) => (
-              <Grid item xs={12} md={6} key={index}>
+          {loading ? (
+            <Grid item xs={12}>
+              <Typography>Loading...</Typography>
+            </Grid>
+          ) : filteredLocations.length > 0 ? (
+            filteredLocations.map((location) => (
+              <Grid item xs={12} md={6} key={location.id}>
                 <Card
                   elevation={2}
                   sx={{
@@ -311,109 +390,59 @@ const SavedLocations = () => {
                       : theme.palette.background.paper,
                   }}>
                   <CardContent sx={{ flexGrow: 1 }}>
-                    <Typography
-                      variant='h6'
-                      gutterBottom
-                      sx={{ fontWeight: 600 }}>
+                    <Typography variant='h6' gutterBottom>
                       {location.name}
                     </Typography>
-                    <Typography
-                      variant='body1'
-                      color='text.secondary'
-                      gutterBottom>
+                    <Typography variant='body2' color='text.secondary' paragraph>
                       {location.address}
                     </Typography>
-                    {location.notes && (
-                      <Typography
-                        variant='body2'
-                        color='text.secondary'
-                        sx={{ mt: 1 }}>
-                        {location.notes}
-                      </Typography>
-                    )}
                   </CardContent>
-                  <CardActions sx={{ p: 2, pt: 0 }}>
+                  <CardActions>
                     <Button
                       size='small'
                       startIcon={<NavigationIcon />}
-                      onClick={() => handleNavigate(location.address)}
-                      color='primary'
-                      variant='contained'
-                      sx={{ mr: 1, borderRadius: 2, textTransform: 'none' }}>
+                      onClick={() => handleNavigate(location.address)}>
                       Navigate
                     </Button>
-                    <IconButton
+                    <Button
                       size='small'
-                      onClick={() => handleOpenDialog(index)}
-                      color='primary'>
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton
+                      startIcon={<EditIcon />}
+                      onClick={() => handleOpenDialog(location)}>
+                      Edit
+                    </Button>
+                    <Button
                       size='small'
-                      onClick={() => handleDeleteLocation(index)}
+                      startIcon={<DeleteIcon />}
+                      onClick={() => handleDeleteLocation(location.id)}
                       color='error'>
-                      <DeleteIcon />
-                    </IconButton>
+                      Delete
+                    </Button>
                   </CardActions>
                 </Card>
               </Grid>
             ))
           ) : (
             <Grid item xs={12}>
-              <Paper
-                elevation={1}
-                sx={{
-                  p: 4,
-                  textAlign: 'center',
-                  borderRadius: 3,
-                  bgcolor: isDarkMode
-                    ? alpha(theme.palette.background.paper, 0.6)
-                    : theme.palette.background.paper,
-                }}>
-                <Typography variant='h6' color='text.secondary'>
-                  {searchTerm
-                    ? 'No locations match your search'
-                    : 'No saved locations yet'}
-                </Typography>
-                <Button
-                  variant='contained'
-                  color='primary'
-                  startIcon={<AddLocationAltIcon />}
-                  onClick={() => handleOpenDialog()}
-                  sx={{ mt: 2, borderRadius: 2, textTransform: 'none' }}>
-                  Add Your First Location
-                </Button>
-              </Paper>
+              <Alert severity='info'>No locations found</Alert>
             </Grid>
           )}
         </Grid>
 
         {/* Add/Edit Location Dialog */}
-        <Dialog
-          open={openDialog}
-          onClose={handleCloseDialog}
-          maxWidth='sm'
-          fullWidth
-          PaperProps={{
-            sx: {
-              borderRadius: 3,
-              p: 1,
-            },
-          }}>
-          <DialogTitle sx={{ fontWeight: 600 }}>
-            {editIndex !== null ? 'Edit Location' : 'Add New Location'}
+        <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth='sm' fullWidth>
+          <DialogTitle>
+            {editingLocation ? 'Edit Location' : 'Add New Location'}
           </DialogTitle>
           <DialogContent>
-            <Grid container spacing={2} sx={{ mt: 0.5 }}>
+            <Grid container spacing={2} sx={{ mt: 1 }}>
               <Grid item xs={12}>
                 <TextField
                   fullWidth
-                  label='Location Name'
+                  label='Name'
                   name='name'
                   value={newLocation.name}
                   onChange={handleInputChange}
                   required
-                  variant='outlined'
                 />
               </Grid>
               <Grid item xs={12}>
@@ -424,47 +453,23 @@ const SavedLocations = () => {
                   value={newLocation.address}
                   onChange={handleInputChange}
                   required
-                  variant='outlined'
                   InputProps={{
                     endAdornment: (
                       <InputAdornment position='end'>
-                        <Tooltip title='Use current location'>
-                          <IconButton
-                            onClick={handleGetCurrentLocation}
-                            edge='end'>
-                            <MyLocationIcon />
-                          </IconButton>
-                        </Tooltip>
+                        <IconButton onClick={handleGetCurrentLocation}>
+                          <MyLocationIcon />
+                        </IconButton>
                       </InputAdornment>
                     ),
                   }}
                 />
               </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label='Notes (optional)'
-                  name='notes'
-                  value={newLocation.notes}
-                  onChange={handleInputChange}
-                  multiline
-                  rows={3}
-                  variant='outlined'
-                />
-              </Grid>
             </Grid>
           </DialogContent>
-          <DialogActions sx={{ px: 3, pb: 3 }}>
-            <Button onClick={handleCloseDialog} color='inherit'>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSaveLocation}
-              variant='contained'
-              color='primary'
-              startIcon={<AddLocationAltIcon />}
-              sx={{ borderRadius: 2, textTransform: 'none' }}>
-              {editIndex !== null ? 'Update Location' : 'Save Location'}
+          <DialogActions>
+            <Button onClick={handleCloseDialog}>Cancel</Button>
+            <Button onClick={handleSaveLocation} variant='contained' color='primary'>
+              {editingLocation ? 'Update' : 'Save'}
             </Button>
           </DialogActions>
         </Dialog>

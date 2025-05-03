@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -12,6 +12,16 @@ import {
   Tabs,
   Tab,
   Alert,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemSecondaryAction,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Snackbar,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -20,17 +30,36 @@ import PeopleIcon from '@mui/icons-material/People';
 import SpaIcon from '@mui/icons-material/Spa';
 import ShareIcon from '@mui/icons-material/Share';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
 import {
   LocationTracker,
   EmergencyContact,
   BreathingExercise,
 } from '../components';
+import { useAuth } from '../contexts/AuthContext';
+import { getEmergencyContacts, addEmergencyContact, updateEmergencyContact, deleteEmergencyContact } from '../backend/emergencyService';
 
 const HelpCenter = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
   const [locationShared, setLocationShared] = useState(false);
   const [emergencyAlertSent, setEmergencyAlertSent] = useState(false);
+  const [emergencyContacts, setEmergencyContacts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [editingContact, setEditingContact] = useState(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
+  });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
 
   const handleBack = () => {
     navigate(-1);
@@ -58,6 +87,138 @@ const HelpCenter = () => {
 
   const handleBreathingGame = () => {
     navigate('/breathing-game');
+  };
+
+  useEffect(() => {
+    const fetchEmergencyContacts = async () => {
+      if (!user || !user.mobile) return;
+      
+      try {
+        setLoading(true);
+        const result = await getEmergencyContacts(user.mobile);
+        if (result.success) {
+          setEmergencyContacts(result.data);
+        } else {
+          throw new Error(result.error);
+        }
+      } catch (error) {
+        console.error('Error fetching emergency contacts:', error);
+        setSnackbar({
+          open: true,
+          message: 'Failed to fetch emergency contacts',
+          severity: 'error',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEmergencyContacts();
+  }, [user]);
+
+  const handleOpenDialog = (contact = null) => {
+    if (contact) {
+      setEditingContact(contact);
+      setFormData({
+        name: contact.name,
+        phone: contact.mobile,
+      });
+    } else {
+      setEditingContact(null);
+      setFormData({
+        name: '',
+        phone: '',
+      });
+    }
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setEditingContact(null);
+    setFormData({
+      name: '',
+      phone: '',
+    });
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async () => {
+    if (!user || !user.mobile) return;
+
+    try {
+      const contactData = {
+        ...formData,
+        patient_mobile: user.mobile,
+        mobile: formData.phone,
+      };
+
+      let result;
+      if (editingContact) {
+        result = await updateEmergencyContact(editingContact.id, contactData);
+      } else {
+        result = await addEmergencyContact(contactData);
+      }
+
+      if (result.success) {
+        const updatedContacts = editingContact
+          ? emergencyContacts.map((contact) =>
+              contact.id === editingContact.id ? result.data : contact
+            )
+          : [...emergencyContacts, result.data];
+        setEmergencyContacts(updatedContacts);
+        setSnackbar({
+          open: true,
+          message: editingContact
+            ? 'Emergency contact updated successfully'
+            : 'Emergency contact added successfully',
+          severity: 'success',
+        });
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Error saving emergency contact:', error);
+      setSnackbar({
+        open: true,
+        message: error.message || 'Failed to save emergency contact',
+        severity: 'error',
+      });
+    }
+
+    handleCloseDialog();
+  };
+
+  const handleDelete = async (id) => {
+    if (!user) return;
+
+    try {
+      const result = await deleteEmergencyContact(id);
+      if (result.success) {
+        setEmergencyContacts(emergencyContacts.filter((contact) => contact.id !== id));
+        setSnackbar({
+          open: true,
+          message: 'Emergency contact deleted successfully',
+          severity: 'success',
+        });
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Error deleting emergency contact:', error);
+      setSnackbar({
+        open: true,
+        message: 'Failed to delete emergency contact',
+        severity: 'error',
+      });
+    }
   };
 
   return (
@@ -197,7 +358,46 @@ const HelpCenter = () => {
                 Add and manage your emergency contacts who will be notified when
                 you need help.
               </Typography>
-              <EmergencyContact />
+              <Paper elevation={3} sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                  <Typography variant="h5">Emergency Contacts</Typography>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<AddIcon />}
+                    onClick={() => handleOpenDialog()}
+                  >
+                    Add Emergency Contact
+                  </Button>
+                </Box>
+
+                <Divider sx={{ mb: 3 }} />
+
+                {loading ? (
+                  <Typography>Loading...</Typography>
+                ) : emergencyContacts.length === 0 ? (
+                  <Alert severity="info">No emergency contacts added yet.</Alert>
+                ) : (
+                  <List>
+                    {emergencyContacts.map((contact) => (
+                      <ListItem key={contact.id} divider>
+                        <ListItemText
+                          primary={contact.name}
+                          secondary={contact.mobile}
+                        />
+                        <ListItemSecondaryAction>
+                          <IconButton edge="end" onClick={() => handleOpenDialog(contact)}>
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton edge="end" onClick={() => handleDelete(contact.id)}>
+                            <DeleteIcon />
+                          </IconButton>
+                        </ListItemSecondaryAction>
+                      </ListItem>
+                    ))}
+                  </List>
+                )}
+              </Paper>
             </Box>
           )}
 
@@ -225,6 +425,56 @@ const HelpCenter = () => {
           )}
         </Paper>
       </motion.div>
+
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>{editingContact ? 'Edit Emergency Contact' : 'Add Emergency Contact'}</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Name"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                required
+                helperText="Must be 10 digits"
+                inputProps={{ maxLength: 10 }}
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button onClick={handleSubmit} variant="contained" color="primary">
+            {editingContact ? 'Update' : 'Add'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
