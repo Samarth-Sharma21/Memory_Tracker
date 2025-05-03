@@ -17,8 +17,8 @@ export const getMemories = async (userId) => {
   }
 };
 
-// Get recent locations for a user
-export const getRecentLocations = async (userId) => {
+// Get recent locations from memories
+export const getRecentLocationsFromMemories = async (userId) => {
   try {
     const { data, error } = await supabase
       .from('memories')
@@ -26,13 +26,21 @@ export const getRecentLocations = async (userId) => {
       .eq('user_id', userId)
       .not('location', 'is', null)
       .not('location', 'eq', '')
-      .order('created_at', { ascending: false })
-      .limit(10);
+      .order('date', { ascending: false });
 
     if (error) throw error;
 
-    // Get unique locations
-    const uniqueLocations = [...new Set(data.map((memory) => memory.location))];
+    // Get unique locations, keeping only the most recent occurrence of each
+    const uniqueLocations = data
+      .filter((memory) => memory.location && memory.location.trim() !== '')
+      .reduce((acc, memory) => {
+        if (!acc.includes(memory.location)) {
+          acc.push(memory.location);
+        }
+        return acc;
+      }, [])
+      .slice(0, 3); // Take only the first 3 unique locations
+
     return { success: true, data: uniqueLocations };
   } catch (error) {
     console.error('Error fetching recent locations:', error);

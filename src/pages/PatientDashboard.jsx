@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { supabase } from './server';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -42,6 +41,7 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
 import catImage from '../assets/cat.jpg';
 import Logo from '../components/Logo';
+import { getMemories, getRecentLocationsFromMemories } from '../backend/memoryService';
 
 const PatientDashboard = () => {
   const navigate = useNavigate();
@@ -57,48 +57,39 @@ const PatientDashboard = () => {
   const [recentLocations, setRecentLocations] = useState([]);
 
   useEffect(() => {
-    const fetchMemories = async () => {
+    const fetchDashboardData = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        // Get the current user's ID
-        const {
-          data: { user },
-          error: userError,
-        } = await supabase.auth.getUser();
-        if (userError || !user) {
-          throw new Error('User not authenticated');
+        setLoading(true);
+        
+        // Fetch memories
+        const memoriesResult = await getMemories(user.id);
+        if (memoriesResult.success) {
+          setMemories(memoriesResult.data);
+        } else {
+          console.error('Error fetching memories:', memoriesResult.error);
         }
 
-        const { data, error } = await supabase
-          .from('memories')
-          .select('*')
-          .eq('user_id', user.id) // Filter by current user's ID
-          .order('date', { ascending: false });
-
-        if (error) throw error;
-
-        setMemories(data || []);
-
-        // Get unique locations, keeping only the most recent occurrence of each
-        const uniqueLocations = data
-          .filter((memory) => memory.location && memory.location.trim() !== '')
-          .reduce((acc, memory) => {
-            if (!acc.includes(memory.location)) {
-              acc.push(memory.location);
-            }
-            return acc;
-          }, [])
-          .slice(0, 3); // Take only the first 3 unique locations
-
-        setRecentLocations(uniqueLocations);
+        // Fetch recent locations
+        const locationsResult = await getRecentLocationsFromMemories(user.id);
+        if (locationsResult.success) {
+          setRecentLocations(locationsResult.data);
+        } else {
+          console.error('Error fetching recent locations:', locationsResult.error);
+        }
       } catch (error) {
-        console.error('Error fetching memories:', error.message);
+        console.error('Error fetching dashboard data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchMemories();
-  }, []);
+    fetchDashboardData();
+  }, [user]);
 
   const handleAddMemory = () => {
     navigate('/add-memory');

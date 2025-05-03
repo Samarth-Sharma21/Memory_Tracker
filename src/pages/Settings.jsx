@@ -21,6 +21,15 @@ import {
   InputLabel,
   FormControl,
   Alert,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemSecondaryAction,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Snackbar,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PersonIcon from '@mui/icons-material/Person';
@@ -30,16 +39,35 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import SecurityIcon from '@mui/icons-material/Security';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
 import { AccessibilityControls, EmergencyContact } from '../components';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { getPatientProfile, updatePatientProfile } from '../backend/settingsService';
+import { getFamilyMembers, addFamilyMember, updateFamilyMember, deleteFamilyMember } from '../backend/familyService';
 
 const Settings = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
   const [notification, setNotification] = useState({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
+  const [familyMembers, setFamilyMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [editingMember, setEditingMember] = useState(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    relationship: '',
+    email: '',
+    phone: '',
+  });
+  const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success',
@@ -94,6 +122,33 @@ const Settings = () => {
     fetchPatientProfile();
   }, [user]);
 
+  useEffect(() => {
+    const fetchFamilyMembers = async () => {
+      if (!user || !userData.mobile) return;
+      
+      try {
+        setLoading(true);
+        const result = await getFamilyMembers(userData.mobile);
+        if (result.success) {
+          setFamilyMembers(result.data);
+        } else {
+          throw new Error(result.error);
+        }
+      } catch (error) {
+        console.error('Error fetching family members:', error);
+        setSnackbar({
+          open: true,
+          message: 'Failed to fetch family members',
+          severity: 'error',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFamilyMembers();
+  }, [user, userData.mobile]);
+
   const handleBack = () => {
     navigate(-1);
   };
@@ -105,6 +160,10 @@ const Settings = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setUserData({ ...userData, [name]: value });
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSwitchChange = (e) => {
@@ -146,6 +205,109 @@ const Settings = () => {
 
   const closeNotification = () => {
     setNotification({ ...notification, open: false });
+  };
+
+  const handleOpenDialog = (member = null) => {
+    if (member) {
+      setEditingMember(member);
+      setFormData({
+        name: member.name,
+        relationship: member.relationship,
+        email: member.email,
+        phone: member.phone,
+      });
+    } else {
+      setEditingMember(null);
+      setFormData({
+        name: '',
+        relationship: '',
+        email: '',
+        phone: '',
+      });
+    }
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setEditingMember(null);
+    setFormData({
+      name: '',
+      relationship: '',
+      email: '',
+      phone: '',
+    });
+  };
+
+  const handleSubmit = async () => {
+    if (!user || !userData.mobile) return;
+
+    try {
+      const familyMemberData = {
+        ...formData,
+        patient_mobile: userData.mobile,
+        mobile: formData.phone,
+      };
+
+      let result;
+      if (editingMember) {
+        result = await updateFamilyMember(editingMember.id, familyMemberData);
+      } else {
+        result = await addFamilyMember(familyMemberData);
+      }
+
+      if (result.success) {
+        const updatedMembers = editingMember
+          ? familyMembers.map((member) =>
+              member.id === editingMember.id ? result.data : member
+            )
+          : [...familyMembers, result.data];
+        setFamilyMembers(updatedMembers);
+        setSnackbar({
+          open: true,
+          message: editingMember
+            ? 'Family member updated successfully'
+            : 'Family member added successfully',
+          severity: 'success',
+        });
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Error saving family member:', error);
+      setSnackbar({
+        open: true,
+        message: error.message || 'Failed to save family member',
+        severity: 'error',
+      });
+    }
+
+    handleCloseDialog();
+  };
+
+  const handleDelete = async (id) => {
+    if (!user) return;
+
+    try {
+      const result = await deleteFamilyMember(id);
+      if (result.success) {
+        setFamilyMembers(familyMembers.filter((member) => member.id !== id));
+        setSnackbar({
+          open: true,
+          message: 'Family member deleted successfully',
+          severity: 'success',
+        });
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Error deleting family member:', error);
+      setSnackbar({
+        open: true,
+        message: 'Failed to delete family member',
+        severity: 'error',
+      });
+    }
   };
 
   return (
@@ -326,14 +488,52 @@ const Settings = () => {
           {/* Family Connections Tab */}
           {activeTab === 2 && (
             <Box sx={{ p: 3 }}>
-              <Typography variant='h6' gutterBottom>
-                Family Members & Caregivers
-              </Typography>
-              <Typography variant='body2' paragraph color='text.secondary'>
-                Manage your connected family members and caregivers who can
-                access your memories and help you.
-              </Typography>
-              <EmergencyContact />
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h5">Family Connections</Typography>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<AddIcon />}
+                  onClick={() => handleOpenDialog()}
+                >
+                  Add Family Member
+                </Button>
+              </Box>
+
+              <Divider sx={{ mb: 3 }} />
+
+              {loading ? (
+                <Typography>Loading...</Typography>
+              ) : familyMembers.length === 0 ? (
+                <Alert severity="info">No family members added yet.</Alert>
+              ) : (
+                <List>
+                  {familyMembers.map((member) => (
+                    <ListItem key={member.id} divider>
+                      <ListItemText
+                        primary={member.name}
+                        secondary={
+                          <>
+                            <Typography component="span" variant="body2" color="text.primary">
+                              {member.relationship}
+                            </Typography>
+                            {member.email && ` — ${member.email}`}
+                            {member.phone && ` — ${member.phone}`}
+                          </>
+                        }
+                      />
+                      <ListItemSecondaryAction>
+                        <IconButton edge="end" onClick={() => handleOpenDialog(member)}>
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton edge="end" onClick={() => handleDelete(member.id)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                  ))}
+                </List>
+              )}
             </Box>
           )}
 
@@ -406,6 +606,77 @@ const Settings = () => {
           </Grid>
         </Paper>
       </div>
+
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>{editingMember ? 'Edit Family Member' : 'Add Family Member'}</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Name"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Relationship"
+                name="relationship"
+                value={formData.relationship}
+                onChange={handleInputChange}
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                required
+                helperText="Must be 10 digits"
+                inputProps={{ maxLength: 10 }}
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button onClick={handleSubmit} variant="contained" color="primary">
+            {editingMember ? 'Update' : 'Add'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
