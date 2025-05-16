@@ -142,6 +142,8 @@ const FullVersionTaskCard = ({ isWidget = false }) => {
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
+        width: '100%',
+        maxWidth: '100%',
       }}>
       <Box
         sx={{
@@ -149,13 +151,15 @@ const FullVersionTaskCard = ({ isWidget = false }) => {
           justifyContent: 'space-between',
           alignItems: 'center',
           mb: 1.5,
+          width: '100%',
         }}>
         <Typography
           variant='h6'
           sx={{
             display: 'flex',
             alignItems: 'center',
-            fontSize: { xs: '1rem', sm: '1.15rem', md: '1.25rem' },
+            fontSize: { xs: '0.95rem', sm: '1.15rem', md: '1.25rem' },
+            width: '100%',
           }}>
           <EventIcon
             sx={{
@@ -177,11 +181,13 @@ const FullVersionTaskCard = ({ isWidget = false }) => {
         onChange={handleSearchChange}
         sx={{
           mb: 3,
+          width: '100%',
           '.MuiOutlinedInput-root': {
             borderRadius: 1.5,
             bgcolor: isDarkMode
               ? alpha(theme.palette.background.paper, 0.3)
               : alpha(theme.palette.background.paper, 0.7),
+            fontSize: { xs: '0.85rem', sm: '1rem' },
           },
         }}
         InputProps={{
@@ -202,7 +208,7 @@ const FullVersionTaskCard = ({ isWidget = false }) => {
           {error}
         </Typography>
       ) : (
-        <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
+        <Box sx={{ flexGrow: 1, overflow: 'auto', width: '100%' }}>
           {/* Today's Tasks */}
           <Box
             sx={{
@@ -232,13 +238,14 @@ const FullVersionTaskCard = ({ isWidget = false }) => {
               sx={{
                 display: 'grid',
                 gridTemplateColumns: {
-                  xs: '1fr',
+                  xs: 'repeat(1, 1fr)',
                   sm: 'repeat(2, 1fr)',
                   md: 'repeat(3, 1fr)',
                   lg: 'repeat(4, 1fr)',
                 },
-                gap: 2,
+                gap: { xs: 1.5, sm: 2 },
                 mb: 3,
+                width: '100%',
               }}>
               {displayTodayTasks.map((task) => (
                 <motion.div
@@ -278,7 +285,7 @@ const FullVersionTaskCard = ({ isWidget = false }) => {
                           <EventIcon color='warning' fontSize='small' />
                         )}
                       </Box>
-                      <Box sx={{ flex: 1 }}>
+                      <Box sx={{ flex: 1, width: '100%', overflow: 'hidden' }}>
                         <Typography
                           variant='body1'
                           fontWeight={task.completed ? 400 : 600}
@@ -289,10 +296,17 @@ const FullVersionTaskCard = ({ isWidget = false }) => {
                             color: task.completed
                               ? theme.palette.text.secondary
                               : theme.palette.text.primary,
+                            fontSize: { xs: '0.9rem', sm: '1rem' },
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
                           }}>
                           {task.title}
                         </Typography>
-                        <Typography variant='caption' color='text.secondary'>
+                        <Typography
+                          variant='caption'
+                          color='text.secondary'
+                          sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>
                           {formatTaskDate(task.due_date)}
                         </Typography>
                       </Box>
@@ -309,7 +323,7 @@ const FullVersionTaskCard = ({ isWidget = false }) => {
                           WebkitBoxOrient: 'vertical',
                           mt: 'auto',
                           pt: 1,
-                          fontSize: '0.8rem',
+                          fontSize: { xs: '0.75rem', sm: '0.8rem' },
                         }}>
                         {task.description}
                       </Typography>
@@ -357,12 +371,13 @@ const FullVersionTaskCard = ({ isWidget = false }) => {
               sx={{
                 display: 'grid',
                 gridTemplateColumns: {
-                  xs: '1fr',
+                  xs: 'repeat(1, 1fr)',
                   sm: 'repeat(2, 1fr)',
                   md: 'repeat(3, 1fr)',
                   lg: 'repeat(4, 1fr)',
                 },
-                gap: 2,
+                gap: { xs: 1.5, sm: 2 },
+                width: '100%',
               }}>
               {displayUpcomingTasks.map((task) => (
                 <motion.div
@@ -396,7 +411,7 @@ const FullVersionTaskCard = ({ isWidget = false }) => {
                         color='info'
                         fontSize='small'
                       />
-                      <Box sx={{ flex: 1 }}>
+                      <Box sx={{ flex: 1, width: '100%', overflow: 'hidden' }}>
                         <Typography
                           variant='body1'
                           fontWeight={600}
@@ -405,7 +420,10 @@ const FullVersionTaskCard = ({ isWidget = false }) => {
                           }}>
                           {task.title}
                         </Typography>
-                        <Typography variant='caption' color='text.secondary'>
+                        <Typography
+                          variant='caption'
+                          color='text.secondary'
+                          sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>
                           {formatTaskDate(task.due_date)}
                         </Typography>
                       </Box>
@@ -422,7 +440,7 @@ const FullVersionTaskCard = ({ isWidget = false }) => {
                           WebkitBoxOrient: 'vertical',
                           mt: 'auto',
                           pt: 1,
-                          fontSize: '0.8rem',
+                          fontSize: { xs: '0.75rem', sm: '0.8rem' },
                         }}>
                         {task.description}
                       </Typography>
@@ -470,9 +488,10 @@ const FullVersionTaskCard = ({ isWidget = false }) => {
             endIcon={<ArrowForwardIcon />}
             sx={{
               borderRadius: 1,
-              py: 1,
+              py: { xs: 0.75, sm: 1 },
               mb: 2,
               fontWeight: 500,
+              fontSize: { xs: '0.85rem', sm: '1rem' },
               '&:hover': {
                 color: 'primary.main',
                 borderColor: 'primary.main',

@@ -69,11 +69,11 @@ const Settings = () => {
     message: '',
     severity: 'success',
   });
+  const muiTheme = useMuiTheme();
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
 
   // Get theme from context
   const { mode, toggleTheme } = useTheme();
-  const muiTheme = useMuiTheme();
-  const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(muiTheme.breakpoints.between('sm', 'md'));
 
   // User data state

@@ -50,11 +50,17 @@ const DashboardBentoGrid = () => {
   ];
 
   return (
-    <Box sx={{ width: '100%', mt: 3 }}>
-      <Typography variant='h5' component='h2' sx={{ mb: 3 }}>
+    <Box sx={{ width: '100%', mt: { xs: 2, sm: 3 } }}>
+      <Typography
+        variant='h5'
+        component='h2'
+        sx={{
+          mb: { xs: 2, sm: 3 },
+          fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.5rem' },
+        }}>
         Quick Access
       </Typography>
-      <Grid container spacing={3}>
+      <Grid container spacing={{ xs: 2, sm: 3 }}>
         {gridItems.map((item, index) => (
           <Grid
             item
@@ -74,12 +80,14 @@ const DashboardBentoGrid = () => {
                   overflow: 'hidden',
                   borderRadius: 2,
                   transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                  p: { xs: 1.5, sm: 2 },
                   '&:hover': {
                     transform: 'translateY(-5px)',
                     boxShadow: isDarkMode
                       ? '0 10px 30px rgba(0, 0, 0, 0.3)'
                       : '0 10px 30px rgba(0, 0, 0, 0.15)',
                   },
+                  width: '100%',
                 }}>
                 {item.component}
               </Paper>

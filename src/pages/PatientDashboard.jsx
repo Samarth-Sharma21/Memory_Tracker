@@ -143,14 +143,14 @@ const PatientDashboard = () => {
         maxWidth='lg'
         disableGutters={isMobile}
         sx={{
-          mt: { xs: 2, sm: 3 },
-          mb: { xs: 4, sm: 5 },
+          mt: { xs: 1.5, sm: 2, md: 3 },
+          mb: { xs: 3, sm: 4, md: 5 },
           px: { xs: 1, sm: 2, md: 3 },
           boxSizing: 'border-box',
           width: '100%',
           overflowX: 'hidden',
         }}>
-        <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
+        <Grid container spacing={{ xs: 1.5, sm: 2, md: 4 }}>
           {/* Greeting Card */}
           <Grid xs={12}>
             <Paper
