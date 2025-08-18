@@ -14,13 +14,11 @@ import {
   Toolbar,
   Typography,
   Button,
-  useMediaQuery,
   useTheme as useMuiTheme,
   Avatar,
   Menu,
   MenuItem,
   Divider,
-  Container,
   Tooltip,
   alpha,
 } from '@mui/material';
@@ -44,7 +42,6 @@ import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { motion } from 'framer-motion';
 import Logo from './Logo';
 
 const drawerWidth = 260;
@@ -182,7 +179,7 @@ const NavSection = styled(Box)(({ theme }) => ({
 const Layout = () => {
   const muiTheme = useMuiTheme();
   const { mode, toggleTheme } = useTheme();
-  const { isMobile, isTablet, isLaptop, isDesktop } = useResponsive();
+  const { isMobile, isTablet } = useResponsive();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [headerVisible, setHeaderVisible] = useState(true);
@@ -333,12 +330,9 @@ const Layout = () => {
       <NavSection>
         {showSidePanelLogo ? (
           <Box sx={{ px: 2, mb: 0, mt: -4 }}>
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.2 }}>
+            <div style={{ opacity: 1 }}>
               <Logo size='medium' withLink={true} />
-            </motion.div>
+            </div>
           </Box>
         ) : null}
       </NavSection>
@@ -687,14 +681,9 @@ const Layout = () => {
             zIndex: -1,
           }}
         />
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          style={{ minHeight: '100%' }}>
-          <Outlet />
-        </motion.div>
+        <div style={{ minHeight: '100%', opacity: 1 }}>
+            <Outlet />
+          </div>
       </Box>
     </Box>
   );
