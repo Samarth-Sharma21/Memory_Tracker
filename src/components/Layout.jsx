@@ -673,8 +673,20 @@ const Layout = () => {
           maxWidth: '100vw',
           overflowX: 'hidden',
           boxSizing: 'border-box',
+          bgcolor: mode === 'dark' ? 'background.default' : '#FFFFFF',
           ...commonResponsiveStyles.container,
         }}>
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            bgcolor: mode === 'dark' ? 'background.default' : '#FFFFFF',
+            zIndex: -1,
+          }}
+        />
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
