@@ -115,7 +115,7 @@ const SavedLocationsCard = () => {
 
   return (
     <Paper
-      elevation={3}
+      elevation={2}
       sx={{
         p: 2,
         borderRadius: 2,
