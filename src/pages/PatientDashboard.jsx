@@ -145,14 +145,15 @@ const PatientDashboard = () => {
           width: '100%',
           overflowX: 'hidden',
         }}>
-        <Grid container spacing={{ xs: 1.5, sm: 2, md: 4 }}>
-          {/* Greeting Card */}
-          <Grid xs={12}>
+        {/* Vertical Stack Container */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 3, sm: 4, md: 5 }, width: '100%' }}>
+          
+          {/* Greeting Section */}
+          <Box sx={{ width: '100%' }}>
             <Paper
               elevation={2}
               sx={{
                 p: { xs: 2, sm: 2.5, md: 3 },
-                mb: { xs: 2, sm: 3, md: 3 },
                 borderRadius: 3,
                 background: isDarkMode
                   ? `linear-gradient(90deg, ${alpha(
@@ -298,56 +299,32 @@ const PatientDashboard = () => {
                 </Grid>
               </Grid>
             </Paper>
-          </Grid>
+          </Box>
 
-          {/* Featured Memories Carousel with Action Buttons */}
-          <Grid xs={12}>
-            <Box
+          {/* Featured Memories Section */}
+          <Box sx={{ width: '100%' }}>
+            <Typography
+              variant='h5'
               sx={{
-                mb: { xs: 2, sm: 3, md: 4 },
-                width: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
+                fontWeight: 600,
+                mb: 2,
+                fontSize: { xs: '1.25rem', sm: '1.5rem' },
               }}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  mb: 2,
-                  width: '100%',
-                  px: 1,
-                }}>
-                <Typography
-                  variant='h5'
-                  sx={{
-                    fontWeight: 600,
-                    fontSize: { xs: '1.25rem', sm: '1.5rem' },
-                  }}>
-                  Featured Memories
-                </Typography>
-              </Box>
-              <Paper
-                elevation={2}
-                sx={{
-                  borderRadius: 3,
-                  overflow: 'hidden',
-                  position: 'relative',
-                  boxShadow: isDarkMode
-                    ? '0 10px 30px rgba(0, 0, 0, 0.3)'
-                    : '0 10px 30px rgba(0, 0, 0, 0.15)',
-                  // Fixed widths for different screen sizes
-                  width: '100%',
-                  maxWidth: {
-                    xs: '100%',
-                    sm: '600px',
-                    md: '800px',
-                    lg: '900px',
-                  },
-                  height: { xs: 200, sm: 280, md: 350, lg: 400 },
-                  boxSizing: 'border-box',
-                }}>
+              Featured Memories
+            </Typography>
+            <Paper
+              elevation={2}
+              sx={{
+                borderRadius: 3,
+                overflow: 'hidden',
+                position: 'relative',
+                boxShadow: isDarkMode
+                  ? '0 10px 30px rgba(0, 0, 0, 0.3)'
+                  : '0 10px 30px rgba(0, 0, 0, 0.15)',
+                width: '100%',
+                height: { xs: 200, sm: 280, md: 350, lg: 400 },
+                boxSizing: 'border-box',
+              }}>
                 <Box
                   sx={{
                     position: 'absolute',
@@ -398,11 +375,10 @@ const PatientDashboard = () => {
                 </Box>
                 <MemoryCarousel memories={memories} />
               </Paper>
-            </Box>
-          </Grid>
+          </Box>
 
-          {/* Dashboard Tools Heading */}
-          <Grid xs={12}>
+          {/* Dashboard Tools Section */}
+          <Box sx={{ width: '100%' }}>
             <Typography
               variant='h5'
               sx={{
@@ -412,51 +388,26 @@ const PatientDashboard = () => {
               }}>
               Dashboard Tools
             </Typography>
-          </Grid>
-
-          {/* Three action cards - stacked on mobile, side by side on larger screens */}
-          <Grid container spacing={{ xs: 2, sm: 3 }}>
-            {/* Dashboard Cards Row - equal height for all cards */}
-            <Grid container item spacing={2} xs={12}>
-              {/* Saved Locations Card */}
-              <Grid item xs={12} sm={6} md={4}>
-                <Box
-                  sx={{
-                    height: { xs: '350px', sm: '350px', md: '350px' },
-                    width: '100%',
-                    display: 'flex',
-                  }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3 }, width: '100%' }}>
+              {/* Three action cards - vertically stacked */}
+              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'column', md: 'row' }, gap: { xs: 2, sm: 3 }, width: '100%' }}>
+                {/* Saved Locations Card */}
+                <Box sx={{ flex: 1, width: '100%' }}>
                   <SavedLocationsCard />
                 </Box>
-              </Grid>
 
-              {/* Tasks Card */}
-              <Grid item xs={12} sm={6} md={4}>
-                <Box
-                  sx={{
-                    height: { xs: '350px', sm: '350px', md: '350px' },
-                    width: '100%',
-                    display: 'flex',
-                  }}>
+                {/* Tasks Card */}
+                <Box sx={{ flex: 1, width: '100%' }}>
                   <UpcomingTasksCard isWidget={true} />
                 </Box>
-              </Grid>
 
-              {/* Family Management Card */}
-              <Grid item xs={12} sm={6} md={4}>
-                <Box
-                  sx={{
-                    height: { xs: '350px', sm: '350px', md: '350px' },
-                    width: '100%',
-                    display: 'flex',
-                  }}>
+                {/* Family Management Card */}
+                <Box sx={{ flex: 1, width: '100%' }}>
                   <FamilyManagementCard onSettingsClick={() => {}} />
                 </Box>
-              </Grid>
-            </Grid>
+              </Box>
 
-            {/* Calendar and Tasks */}
-            <Grid item xs={12} md={12} lg={10}>
+              {/* Calendar and Tasks */}
               <Paper
                 elevation={2}
                 sx={{
@@ -495,129 +446,138 @@ const PatientDashboard = () => {
                   </Button>
                 </Box>
               </Paper>
-            </Grid>
+            </Box>
+          </Box>
 
-            {/* Quick Actions */}
-            <Grid item xs={12} md={6} lg={2}>
-              <Paper
-                elevation={2}
-                sx={{
-                  p: 3,
-                  borderRadius: 2,
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}>
-                <Typography variant='h6' gutterBottom>
-                  Quick Actions
-                </Typography>
-                <Grid container spacing={2} sx={{ mt: 1 }}>
-                  <Grid item xs={6}>
-                    <Button
-                      component={Link}
-                      to='/add-memory'
-                      variant='outlined'
-                      color='primary'
-                      fullWidth
-                      startIcon={<AddPhotoAlternateIcon />}
-                      sx={{
-                        height: '100%',
-                        py: 2,
-                        '&:hover': {
-                          color: 'primary.main',
-                          borderColor: 'primary.main',
-                          bgcolor: alpha(theme.palette.primary.main, 0.05),
-                        },
-                      }}>
-                      Add Memory
-                    </Button>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Button
-                      onClick={toggleBreathingExercise}
-                      variant='outlined'
-                      color='secondary'
-                      fullWidth
-                      startIcon={<SpaIcon />}
-                      sx={{
-                        height: '100%',
-                        py: 2,
-                        '&:hover': {
-                          color: 'secondary.main',
-                          borderColor: 'secondary.main',
-                          bgcolor: alpha(theme.palette.secondary.main, 0.05),
-                        },
-                      }}>
-                      Breathing
-                    </Button>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Button
-                      component={Link}
-                      to='/patient/dashboard/timeline'
-                      variant='outlined'
-                      color='primary'
-                      fullWidth
-                      startIcon={<TimelineIcon />}
-                      sx={{
-                        height: '100%',
-                        py: 2,
-                        '&:hover': {
-                          color: 'primary.main',
-                          borderColor: 'primary.main',
-                          bgcolor: alpha(theme.palette.primary.main, 0.05),
-                        },
-                      }}>
-                      Timeline
-                    </Button>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Button
-                      component={Link}
-                      to='/saved-locations'
-                      variant='outlined'
-                      color='secondary'
-                      fullWidth
-                      startIcon={<LocationOnIcon />}
-                      sx={{
-                        height: '100%',
-                        py: 2,
-                        '&:hover': {
-                          color: 'secondary.main',
-                          borderColor: 'secondary.main',
-                          bgcolor: alpha(theme.palette.secondary.main, 0.05),
-                        },
-                      }}>
-                      Locations
-                    </Button>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Button
-                      component={Link}
-                      to='/calendar'
-                      variant='outlined'
-                      color='primary'
-                      fullWidth
-                      startIcon={<CalendarTodayIcon />}
-                      sx={{
-                        height: '100%',
-                        py: 2,
-                        '&:hover': {
-                          color: 'primary.main',
-                          borderColor: 'primary.main',
-                          bgcolor: alpha(theme.palette.primary.main, 0.05),
-                        },
-                      }}>
-                      Calendar
-                    </Button>
-                  </Grid>
+          {/* Quick Actions Section */}
+          <Box sx={{ width: '100%' }}>
+            <Typography variant='h6' gutterBottom sx={{ mb: 2 }}>
+              Quick Actions
+            </Typography>
+            <Paper
+              elevation={2}
+              sx={{
+                p: 3,
+                borderRadius: 2,
+                display: 'flex',
+                flexDirection: 'column',
+                width: '100%',
+              }}>
+              <Grid container spacing={2} sx={{ mt: 1 }}>
+                <Grid item xs={6}>
+                  <Button
+                    component={Link}
+                    to='/add-memory'
+                    variant='outlined'
+                    color='primary'
+                    fullWidth
+                    startIcon={<AddPhotoAlternateIcon />}
+                    sx={{
+                      height: '100%',
+                      py: 2,
+                      '&:hover': {
+                        color: 'primary.main',
+                        borderColor: 'primary.main',
+                        bgcolor: alpha(theme.palette.primary.main, 0.05),
+                      },
+                    }}>
+                    Add Memory
+                  </Button>
                 </Grid>
-              </Paper>
-            </Grid>
-          </Grid>
+                <Grid item xs={6}>
+                  <Button
+                    onClick={toggleBreathingExercise}
+                    variant='outlined'
+                    color='secondary'
+                    fullWidth
+                    startIcon={<SpaIcon />}
+                    sx={{
+                      height: '100%',
+                      py: 2,
+                      '&:hover': {
+                        color: 'secondary.main',
+                        borderColor: 'secondary.main',
+                        bgcolor: alpha(theme.palette.secondary.main, 0.05),
+                      },
+                    }}>
+                    Breathing
+                  </Button>
+                </Grid>
+                <Grid item xs={6}>
+                  <Button
+                    component={Link}
+                    to='/patient/dashboard/timeline'
+                    variant='outlined'
+                    color='primary'
+                    fullWidth
+                    startIcon={<TimelineIcon />}
+                    sx={{
+                      height: '100%',
+                      py: 2,
+                      '&:hover': {
+                        color: 'primary.main',
+                        borderColor: 'primary.main',
+                        bgcolor: alpha(theme.palette.primary.main, 0.05),
+                      },
+                    }}>
+                    Timeline
+                  </Button>
+                </Grid>
+                <Grid item xs={6}>
+                  <Button
+                    component={Link}
+                    to='/saved-locations'
+                    variant='outlined'
+                    color='secondary'
+                    fullWidth
+                    startIcon={<LocationOnIcon />}
+                    sx={{
+                      height: '100%',
+                      py: 2,
+                      '&:hover': {
+                        color: 'secondary.main',
+                        borderColor: 'secondary.main',
+                        bgcolor: alpha(theme.palette.secondary.main, 0.05),
+                      },
+                    }}>
+                    Locations
+                  </Button>
+                </Grid>
+                <Grid item xs={6}>
+                  <Button
+                    component={Link}
+                    to='/calendar'
+                    variant='outlined'
+                    color='primary'
+                    fullWidth
+                    startIcon={<CalendarTodayIcon />}
+                    sx={{
+                      height: '100%',
+                      py: 2,
+                      '&:hover': {
+                        color: 'primary.main',
+                        borderColor: 'primary.main',
+                        bgcolor: alpha(theme.palette.primary.main, 0.05),
+                      },
+                    }}>
+                    Calendar
+                  </Button>
+                </Grid>
+              </Grid>
+            </Paper>
+          </Box>
 
-          {/* Recent Memories */}
-          <Grid xs={12} sx={{ mt: 4 }}>
+          {/* Recent Memories Section */}
+          <Box sx={{ width: '100%' }}>
+            <Typography
+              variant='h6'
+              sx={{
+                fontWeight: 600,
+                mb: 2,
+                fontSize: { xs: '1.1rem', sm: '1.25rem' },
+              }}>
+              Recent Memories
+            </Typography>
             <Paper
               elevation={2}
               sx={{
@@ -642,14 +602,6 @@ const PatientDashboard = () => {
                   flexDirection: { xs: 'column', sm: 'row' },
                   gap: { xs: 1, sm: 0 },
                 }}>
-                <Typography
-                  variant='h6'
-                  sx={{
-                    fontSize: { xs: '1.1rem', sm: '1.25rem' },
-                    alignSelf: { xs: 'flex-start', sm: 'center' },
-                  }}>
-                  Recent Memories
-                </Typography>
                 <Button
                   variant='outlined'
                   size='small'
@@ -804,8 +756,8 @@ const PatientDashboard = () => {
                 )}
               </Grid>
             </Paper>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Container>
     </Box>
   );
