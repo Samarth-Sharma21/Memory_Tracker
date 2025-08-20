@@ -116,7 +116,6 @@ const SavedLocations = () => {
     name: '',
     address: '',
     notes: '',
-    isHome: false,
   });
 
   // UI states
@@ -162,7 +161,7 @@ const SavedLocations = () => {
       setEditIndex(index);
     } else {
       // Add new location
-      setNewLocation({ name: '', address: '', notes: '', isHome: false });
+      setNewLocation({ name: '', address: '', notes: '' });
       setEditIndex(null);
     }
     setOpenDialog(true);
@@ -822,18 +821,10 @@ const SavedLocations = () => {
               rows={3}
             />
             <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-              <input
-                type='checkbox'
-                id='isHome'
-                name='isHome'
-                checked={newLocation.isHome || false}
-                onChange={handleInputChange}
-              />
-              <label htmlFor='isHome' style={{ marginLeft: 8 }}>
-                Set as home location
-              </label>
+              
+            
             </Box>
-          </Box>
+          </Box>  
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>

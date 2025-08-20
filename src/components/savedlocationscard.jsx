@@ -199,16 +199,12 @@ const SavedLocationsCard = () => {
                   transition: 'all 0.2s ease',
                 }}>
                 <Box sx={{ mb: 1 }}>
-                  {location.isHome ? (
-                    <HomeIcon color='primary' sx={{ fontSize: 28 }} />
-                  ) : (
-                    <LocationOnIcon color='secondary' sx={{ fontSize: 28 }} />
-                  )}
+                  <LocationOnIcon color='secondary' sx={{ fontSize: 28 }} />
                 </Box>
                 <Typography
                   variant='body2'
                   sx={{
-                    fontWeight: location.isHome ? 600 : 400,
+                    fontWeight: 400,
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     display: '-webkit-box',

@@ -144,7 +144,7 @@ const LocationTracker = () => {
         address: currentLocation.address,
         lat: currentLocation.lat,
         lng: currentLocation.lng,
-        isHome: false,
+
       };
 
       // Save to database
@@ -161,7 +161,12 @@ const LocationTracker = () => {
         id: Date.now().toString(),
       };
 
-      setSavedLocations([...savedLocations, locationWithId]);
+      const updatedLocations = [...savedLocations, locationWithId];
+      setSavedLocations(updatedLocations);
+      
+      // Save to localStorage as backup
+      localStorage.setItem('savedLocations', JSON.stringify(updatedLocations));
+      
       setNewLocationName('');
       setShowAddForm(false);
       showNotification('Location saved successfully', 'success');
@@ -184,12 +189,16 @@ const LocationTracker = () => {
       }
 
       // Update in local state
-      setSavedLocations(
-        savedLocations.map((location) => ({
-          ...location,
-          isHome: location.id === id,
-        }))
-      );
+      const updatedLocations = savedLocations.map((location) => ({
+        ...location,
+        isHome: location.id === id,
+      }));
+      
+      setSavedLocations(updatedLocations);
+      
+      // Update localStorage
+      localStorage.setItem('savedLocations', JSON.stringify(updatedLocations));
+      
       showNotification('Home location updated', 'success');
     } catch (error) {
       console.error('Error updating home location:', error.message);
