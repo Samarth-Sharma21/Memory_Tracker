@@ -16,6 +16,8 @@ import {
   ClickAwayListener,
   useTheme,
   alpha,
+  Divider,
+  CircularProgress,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
@@ -28,6 +30,12 @@ import PeopleIcon from '@mui/icons-material/People';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import { supabase } from '../backend/server';
 import { useAuth } from '../contexts/AuthContext';
+import { 
+  getComprehensiveScore, 
+  sortByRelevance, 
+  highlightMatches,
+  getSearchSuggestions 
+} from '../utils/searchUtils';
 
 const UniversalSearch = ({ 
   isFullWidth = false, 
@@ -39,6 +47,7 @@ const UniversalSearch = ({
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
   const [allData, setAllData] = useState({
     memories: [],
     locations: [],
@@ -51,6 +60,7 @@ const UniversalSearch = ({
   const { user } = useAuth();
   const searchRef = useRef(null);
   const anchorRef = useRef(null);
+  const searchTimeoutRef = useRef(null);
 
   // Load all data on component mount
   useEffect(() => {
@@ -67,26 +77,46 @@ const UniversalSearch = ({
           return;
         }
 
+        // Determine actual user ID for data fetching
+        let actualUserId = currentUser.id;
+        
+        // If user is a family member, get patient ID
+        if (user?.type === 'family') {
+          try {
+            const { data: familyData, error: familyError } = await supabase
+              .from('family_members')
+              .select('patient_id')
+              .eq('id', currentUser.id)
+              .single();
+            
+            if (!familyError && familyData) {
+              actualUserId = familyData.patient_id;
+            }
+          } catch (error) {
+            console.log('Family member lookup failed, using current user ID');
+          }
+        }
+
         // Load memories
         const { data: memories } = await supabase
           .from('memories')
           .select('*')
-          .eq('user_id', currentUser.id)
+          .eq('user_id', actualUserId)
           .order('date', { ascending: false });
 
-        // Load locations
+        // Load locations - FIX THE TABLE NAME
         const { data: locations } = await supabase
-          .from('locations')
+          .from('saved_locations')  // Fixed table name from 'locations' to 'saved_locations'
           .select('*')
-          .eq('user_id', currentUser.id);
+          .eq('user_id', actualUserId);
 
-        // Load tasks (assuming tasks table exists)
+        // Load tasks
         let tasks = [];
         try {
           const { data: tasksData } = await supabase
             .from('tasks')
             .select('*')
-            .eq('user_id', currentUser.id);
+            .eq('user_id', actualUserId);
           tasks = tasksData || [];
         } catch (error) {
           console.log('Tasks table not available, using local storage');
@@ -137,29 +167,44 @@ const UniversalSearch = ({
     loadAllData();
   }, [user]);
 
-  // Search function with instant filtering
+  // Enhanced search function with fuzzy matching and semantic understanding
   useEffect(() => {
     if (!searchTerm.trim()) {
       setSearchResults([]);
+      setSuggestions([]);
       setShowResults(false);
       return;
     }
 
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    // Debounce search to improve performance
+    searchTimeoutRef.current = setTimeout(() => {
+      performSearch();
+    }, 200);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [searchTerm, allData]);
+
+  const performSearch = () => {
     setIsSearching(true);
-    const term = searchTerm.toLowerCase();
+    const term = searchTerm.trim();
     const results = [];
 
-    // Search memories
+    // Search memories with comprehensive scoring
     allData.memories.forEach(memory => {
-      const matchesTitle = memory.title?.toLowerCase().includes(term);
-      const matchesDescription = memory.description?.toLowerCase().includes(term);
-      const matchesContent = memory.content?.toLowerCase().includes(term);
-      const matchesPeople = memory.people?.some(person => 
-        person.toLowerCase().includes(term)
-      );
-      const matchesLocation = memory.location?.toLowerCase().includes(term);
+      const score = getComprehensiveScore(term, memory, [
+        'title', 'description', 'content', 'location', 'people'
+      ]);
 
-      if (matchesTitle || matchesDescription || matchesContent || matchesPeople || matchesLocation) {
+      if (score > 0.2) { // Threshold for relevance
         results.push({
           id: memory.id,
           title: memory.title || 'Untitled Memory',
@@ -169,35 +214,38 @@ const UniversalSearch = ({
           date: memory.date,
           icon: getMemoryIcon(memory.type),
           image: memory.type === 'photo' ? memory.content : null,
+          score: score,
           onClick: () => navigate(`/memory/${memory.id}`)
         });
       }
     });
 
-    // Search locations
+    // Search locations with comprehensive scoring
     allData.locations.forEach(location => {
-      const matchesName = location.name?.toLowerCase().includes(term);
-      const matchesAddress = location.address?.toLowerCase().includes(term);
-      const matchesNotes = location.notes?.toLowerCase().includes(term);
+      const score = getComprehensiveScore(term, location, [
+        'name', 'address', 'notes'
+      ]);
 
-      if (matchesName || matchesAddress || matchesNotes) {
+      if (score > 0.2) {
         results.push({
           id: location.id,
           title: location.name,
           subtitle: location.address,
           type: 'location',
           icon: <LocationOnIcon />,
+          score: score,
           onClick: () => navigate('/saved-locations')
         });
       }
     });
 
-    // Search tasks
+    // Search tasks with comprehensive scoring
     allData.tasks.forEach(task => {
-      const matchesTitle = task.title?.toLowerCase().includes(term);
-      const matchesDescription = task.description?.toLowerCase().includes(term);
+      const score = getComprehensiveScore(term, task, [
+        'title', 'description'
+      ]);
 
-      if (matchesTitle || matchesDescription) {
+      if (score > 0.2) {
         results.push({
           id: task.id,
           title: task.title,
@@ -205,38 +253,37 @@ const UniversalSearch = ({
           type: 'task',
           date: task.date,
           icon: <TaskIcon />,
+          score: score,
           onClick: () => navigate('/task-manager')
         });
       }
     });
 
-    // Search people
+    // Search people with comprehensive scoring
     allData.people.forEach(person => {
-      if (person.name.toLowerCase().includes(term)) {
+      const score = getComprehensiveScore(term, person, ['name']);
+
+      if (score > 0.2) {
         results.push({
           id: person.id,
           title: person.name,
           subtitle: 'Person',
           type: 'person',
           icon: <PeopleIcon />,
-          onClick: () => navigate('/patient/dashboard/timeline') // Navigate to timeline to see memories with this person
+          score: score,
+          onClick: () => navigate('/patient/dashboard/timeline')
         });
       }
     });
 
-    // Sort results by relevance (exact matches first, then partial matches)
-    results.sort((a, b) => {
-      const aExact = a.title.toLowerCase() === term;
-      const bExact = b.title.toLowerCase() === term;
-      if (aExact && !bExact) return -1;
-      if (!aExact && bExact) return 1;
-      return 0;
-    });
+    // Sort results by relevance using advanced sorting
+    const sortedResults = sortByRelevance(results, term);
 
-    setSearchResults(results.slice(0, 8)); // Limit to 8 results
-    setShowResults(results.length > 0);
+    setSearchResults(sortedResults.slice(0, 8)); // Limit to 8 results
+    setSuggestions(getSearchSuggestions(term, allData));
+    setShowResults(sortedResults.length > 0 || suggestions.length > 0);
     setIsSearching(false);
-  }, [searchTerm, allData, navigate]);
+  };
 
   const getMemoryIcon = (type) => {
     switch (type) {
@@ -272,7 +319,7 @@ const UniversalSearch = ({
 
   const handleSearchFocus = () => {
     if (onSearchFocus) onSearchFocus();
-    if (searchTerm && searchResults.length > 0) {
+    if (searchTerm && (searchResults.length > 0 || suggestions.length > 0)) {
       setShowResults(true);
     }
   };
@@ -280,13 +327,18 @@ const UniversalSearch = ({
   const handleSearchBlur = () => {
     if (onSearchBlur) onSearchBlur();
     // Don't hide results immediately to allow clicking
-    setTimeout(() => setShowResults(false), 200);
+    setTimeout(() => setShowResults(false), 300);
   };
 
   const handleResultClick = (result) => {
     setSearchTerm('');
     setShowResults(false);
     result.onClick();
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    setSearchTerm(suggestion);
+    setShowResults(false);
   };
 
   const handleClickAway = () => {
@@ -316,7 +368,11 @@ const UniversalSearch = ({
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchIcon sx={{ color: 'text.secondary' }} />
+                {isSearching ? (
+                  <CircularProgress size={20} sx={{ color: 'text.secondary' }} />
+                ) : (
+                  <SearchIcon sx={{ color: 'text.secondary' }} />
+                )}
               </InputAdornment>
             ),
             sx: {
@@ -360,6 +416,44 @@ const UniversalSearch = ({
               }}
             >
               <List dense sx={{ py: 0 }}>
+                {/* Suggestions */}
+                {suggestions.length > 0 && (
+                  <>
+                    <ListItem sx={{ py: 1, px: 2, bgcolor: alpha(theme.palette.primary.main, 0.05) }}>
+                      <Typography variant="caption" color="primary" sx={{ fontWeight: 600 }}>
+                        Suggestions
+                      </Typography>
+                    </ListItem>
+                    {suggestions.map((suggestion, index) => (
+                      <ListItem key={`suggestion-${index}`} disablePadding>
+                        <ListItemButton
+                          onClick={() => handleSuggestionClick(suggestion)}
+                          sx={{
+                            py: 1,
+                            px: 2,
+                            '&:hover': {
+                              bgcolor: alpha(theme.palette.secondary.main, 0.08),
+                            },
+                          }}
+                        >
+                          <ListItemIcon sx={{ minWidth: 32 }}>
+                            <SearchIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                          </ListItemIcon>
+                          <ListItemText
+                            primary={
+                              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                {suggestion}
+                              </Typography>
+                            }
+                          />
+                        </ListItemButton>
+                      </ListItem>
+                    ))}
+                    {searchResults.length > 0 && <Divider />}
+                  </>
+                )}
+
+                {/* Search Results */}
                 {searchResults.map((result, index) => (
                   <ListItem key={`${result.type}-${result.id}-${index}`} disablePadding>
                     <ListItemButton
@@ -404,9 +498,13 @@ const UniversalSearch = ({
                       <ListItemText
                         primary={
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                              {result.title}
-                            </Typography>
+                            <Typography 
+                              variant="body2" 
+                              sx={{ fontWeight: 500 }}
+                              dangerouslySetInnerHTML={{
+                                __html: highlightMatches(result.title, searchTerm)
+                              }}
+                            />
                             <Chip
                               label={result.type}
                               size="small"
@@ -415,6 +513,17 @@ const UniversalSearch = ({
                                 fontSize: '0.7rem',
                                 bgcolor: alpha(getTypeColor(result.type), 0.1),
                                 color: getTypeColor(result.type),
+                              }}
+                            />
+                            <Chip
+                              label={`${Math.round(result.score * 100)}%`}
+                              size="small"
+                              variant="outlined"
+                              sx={{
+                                height: 18,
+                                fontSize: '0.6rem',
+                                borderColor: alpha(theme.palette.text.secondary, 0.3),
+                                color: 'text.secondary',
                               }}
                             />
                           </Box>
@@ -429,21 +538,27 @@ const UniversalSearch = ({
                               textOverflow: 'ellipsis',
                               whiteSpace: 'nowrap',
                             }}
-                          >
-                            {result.subtitle}
-                            {result.date && ` • ${new Date(result.date).toLocaleDateString()}`}
-                          </Typography>
+                            dangerouslySetInnerHTML={{
+                              __html: highlightMatches(result.subtitle, searchTerm)
+                            }}
+                          />
                         }
                       />
                     </ListItemButton>
                   </ListItem>
                 ))}
-                {searchResults.length === 0 && searchTerm && (
+
+                {searchResults.length === 0 && suggestions.length === 0 && searchTerm && !isSearching && (
                   <ListItem>
                     <ListItemText
                       primary={
                         <Typography variant="body2" color="text.secondary" align="center">
                           No results found for "{searchTerm}"
+                        </Typography>
+                      }
+                      secondary={
+                        <Typography variant="caption" color="text.secondary" align="center">
+                          Try different keywords or check spelling
                         </Typography>
                       }
                     />
