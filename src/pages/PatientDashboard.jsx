@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '../backend/server';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { supabase } from "../backend/server";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -16,18 +16,16 @@ import {
   Avatar,
   CardMedia,
   useTheme,
-} from '@mui/material';
-import {
-  useResponsive,
-} from '../styles/responsiveStyles';
-import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
-import SpaIcon from '@mui/icons-material/Spa';
-import TimelineIcon from '@mui/icons-material/Timeline';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import PeopleIcon from '@mui/icons-material/People';
-import TextSnippetIcon from '@mui/icons-material/TextSnippet';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import AddIcon from '@mui/icons-material/Add';
+} from "@mui/material";
+import { useResponsive } from "../styles/responsiveStyles";
+import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
+import SpaIcon from "@mui/icons-material/Spa";
+import TimelineIcon from "@mui/icons-material/Timeline";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import PeopleIcon from "@mui/icons-material/People";
+import TextSnippetIcon from "@mui/icons-material/TextSnippet";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import AddIcon from "@mui/icons-material/Add";
 import {
   BreathingExercise,
   MemoryCarousel,
@@ -35,25 +33,26 @@ import {
   CalendarAndTasks,
   FamilyManagementCard,
   NotificationsCard,
-} from '../components';
-import { Link } from 'react-router-dom';
-import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
-import SavedLocationsCard from '../components/SavedLocationsCard';
-import UpcomingTasksCard from '../components/UpcomingTasksCard';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom';
-import { useAuth } from '../contexts/AuthContext';
-import { alpha } from '@mui/material/styles';
-import catImage from '../assets/cat.jpg';
-import Logo from '../components/Logo';
+  UniversalSearch,
+} from "../components";
+import { Link } from "react-router-dom";
+import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
+import SavedLocationsCard from "../components/savedlocationscard";
+import UpcomingTasksCard from "../components/upcomingtaskscard";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import FamilyRestroomIcon from "@mui/icons-material/FamilyRestroom";
+import { useAuth } from "../contexts/AuthContext";
+import { alpha } from "@mui/material/styles";
+import catImage from "../assets/cat.jpg";
+import Logo from "../components/Logo";
 
 const PatientDashboard = () => {
   const navigate = useNavigate();
   const [showBreathingExercise, setShowBreathingExercise] = useState(false);
   const { user } = useAuth();
-  const [greeting, setGreeting] = useState('');
+  const [greeting, setGreeting] = useState("");
   const theme = useTheme();
-  const isDarkMode = theme.palette.mode === 'dark';
+  const isDarkMode = theme.palette.mode === "dark";
   const { isMobile } = useResponsive();
 
   // Create a combined userData object with defaults and auth data
@@ -68,20 +67,20 @@ const PatientDashboard = () => {
           error: userError,
         } = await supabase.auth.getUser();
         if (userError || !user) {
-          throw new Error('User not authenticated');
+          throw new Error("User not authenticated");
         }
 
         const { data, error } = await supabase
-          .from('memories')
-          .select('*')
-          .eq('user_id', user.id) // Filter by current user's ID
-          .order('date', { ascending: false });
+          .from("memories")
+          .select("*")
+          .eq("user_id", user.id) // Filter by current user's ID
+          .order("date", { ascending: false });
 
         if (error) throw error;
 
         setMemories(data || []);
       } catch (error) {
-        console.error('Error fetching memories:', error.message);
+        console.error("Error fetching memories:", error.message);
       }
     };
 
@@ -89,7 +88,7 @@ const PatientDashboard = () => {
   }, []);
 
   const handleAddMemory = () => {
-    navigate('/add-memory');
+    navigate("/add-memory");
   };
 
   const handleViewMemory = (id) => {
@@ -105,11 +104,11 @@ const PatientDashboard = () => {
       const hour = new Date().getHours(); // uses user's local time
 
       if (hour >= 17) {
-        setGreeting('Good evening!');
+        setGreeting("Good evening!");
       } else if (hour >= 12) {
-        setGreeting('Good afternoon!');
+        setGreeting("Good afternoon!");
       } else {
-        setGreeting('Good morning!');
+        setGreeting("Good morning!");
       }
     };
 
@@ -120,8 +119,8 @@ const PatientDashboard = () => {
   }, []);
 
   const userData = {
-    name: user?.name || 'Guest', // Default name if undefined
-    email: user?.email || '',
+    name: user?.name || "Guest", // Default name if undefined
+    email: user?.email || "",
     familyMembers: user?.familyMembers || [], // Add default empty array for familyMembers
   };
 
@@ -142,6 +141,8 @@ const PatientDashboard = () => {
           px: { xs: 1, sm: 2, md: 3 },
           boxSizing: "border-box",
           width: "100%",
+          maxWidth: "1200px", // Uniform max width
+          mx: "auto", // Center the container
           overflowX: "hidden",
         }}
       >
@@ -154,6 +155,14 @@ const PatientDashboard = () => {
             width: "100%",
           }}
         >
+          {/* Universal Search Bar */}
+          <Box sx={{ width: "100%" }}>
+            <UniversalSearch 
+              isFullWidth={true}
+              placeholder="Search memories, tasks, people, or locations..."
+            />
+          </Box>
+
           {/* Greeting Section */}
           <Box sx={{ width: "100%" }}>
             <Paper
@@ -459,7 +468,14 @@ const PatientDashboard = () => {
           </Box>
 
           {/* Dashboard Tools Section */}
-          <Box sx={{ width: "100%", maxWidth: "100%", overflowX: "hidden", boxSizing: "border-box" }}>
+          <Box
+            sx={{
+              width: "100%",
+              maxWidth: "100%",
+              overflowX: "hidden",
+              boxSizing: "border-box",
+            }}
+          >
             <Typography
               variant="h5"
               sx={{
@@ -489,17 +505,38 @@ const PatientDashboard = () => {
                 }}
               >
                 {/* Saved Locations Card */}
-                <Box sx={{ flex: { xs: 1, md: 1 }, width: "100%", maxWidth: "100%", boxSizing: "border-box" }}>
+                <Box
+                  sx={{
+                    flex: { xs: 1, md: 1 },
+                    width: "100%",
+                    maxWidth: "100%",
+                    boxSizing: "border-box",
+                  }}
+                >
                   <SavedLocationsCard />
                 </Box>
 
                 {/* Tasks Card */}
-                <Box sx={{ flex: { xs: 1, md: 1 }, width: "100%", maxWidth: "100%", boxSizing: "border-box" }}>
+                <Box
+                  sx={{
+                    flex: { xs: 1, md: 1 },
+                    width: "100%",
+                    maxWidth: "100%",
+                    boxSizing: "border-box",
+                  }}
+                >
                   <UpcomingTasksCard isWidget={true} />
                 </Box>
 
                 {/* Family Management Card */}
-                <Box sx={{ flex: { xs: 1, md: 1 }, width: "100%", maxWidth: "100%", boxSizing: "border-box" }}>
+                <Box
+                  sx={{
+                    flex: { xs: 1, md: 1 },
+                    width: "100%",
+                    maxWidth: "100%",
+                    boxSizing: "border-box",
+                  }}
+                >
                   <FamilyManagementCard onSettingsClick={() => {}} />
                 </Box>
               </Box>

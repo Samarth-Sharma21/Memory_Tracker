@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -26,27 +26,28 @@ import {
   Tooltip,
   useTheme,
   alpha,
-} from '@mui/material';
+} from "@mui/material";
 import {
   useResponsive,
   commonResponsiveStyles,
-} from '../styles/responsiveStyles';
-import AddLocationAltIcon from '@mui/icons-material/AddLocationAlt';
-import MyLocationIcon from '@mui/icons-material/MyLocation';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
-import NavigationIcon from '@mui/icons-material/Navigation';
-import SearchIcon from '@mui/icons-material/Search';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import HomeIcon from '@mui/icons-material/Home';
-import { useNavigate } from 'react-router-dom';
-import { supabase, locationService } from '../backend/server';
+} from "../styles/responsiveStyles";
+import AddLocationAltIcon from "@mui/icons-material/AddLocationAlt";
+import MyLocationIcon from "@mui/icons-material/MyLocation";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import NavigationIcon from "@mui/icons-material/Navigation";
+import SearchIcon from "@mui/icons-material/Search";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import HomeIcon from "@mui/icons-material/Home";
+import { useNavigate } from "react-router-dom";
+import { supabase, locationService } from "../backend/server";
+import { UniversalSearch } from '../components';
 
 const SavedLocations = () => {
   const navigate = useNavigate();
   const theme = useTheme();
-  const isDarkMode = theme.palette.mode === 'dark';
+  const isDarkMode = theme.palette.mode === "dark";
   const { isExtraSmallMobile, isMobile, isTablet, isLaptop, isDesktop } =
     useResponsive();
 
@@ -68,7 +69,7 @@ const SavedLocations = () => {
 
         if (userError || !user) {
           // Fallback to localStorage if not authenticated
-          const savedLocations = localStorage.getItem('savedLocations');
+          const savedLocations = localStorage.getItem("savedLocations");
           const locationsData = savedLocations
             ? JSON.parse(savedLocations)
             : [];
@@ -89,7 +90,7 @@ const SavedLocations = () => {
           setFilteredLocations(data);
         } else {
           // Fallback to localStorage if no data
-          const savedLocations = localStorage.getItem('savedLocations');
+          const savedLocations = localStorage.getItem("savedLocations");
           const locationsData = savedLocations
             ? JSON.parse(savedLocations)
             : [];
@@ -97,9 +98,9 @@ const SavedLocations = () => {
           setFilteredLocations(locationsData);
         }
       } catch (error) {
-        console.error('Error fetching locations:', error.message);
+        console.error("Error fetching locations:", error.message);
         // Fallback to localStorage on error
-        const savedLocations = localStorage.getItem('savedLocations');
+        const savedLocations = localStorage.getItem("savedLocations");
         const locationsData = savedLocations ? JSON.parse(savedLocations) : [];
         setLocations(locationsData);
         setFilteredLocations(locationsData);
@@ -113,24 +114,24 @@ const SavedLocations = () => {
 
   // State for location form
   const [newLocation, setNewLocation] = useState({
-    name: '',
-    address: '',
-    notes: '',
+    name: "",
+    address: "",
+    notes: "",
   });
 
   // UI states
   const [openDialog, setOpenDialog] = useState(false);
   const [editIndex, setEditIndex] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [notification, setNotification] = useState({
     open: false,
-    message: '',
-    severity: 'success',
+    message: "",
+    severity: "success",
   });
   const [confirmDeleteDialog, setConfirmDeleteDialog] = useState({
     open: false,
     index: null,
-    locationName: '',
+    locationName: "",
   });
 
   // Filter locations based on search term
@@ -151,7 +152,7 @@ const SavedLocations = () => {
 
   // Save locations to localStorage as backup whenever they change
   useEffect(() => {
-    localStorage.setItem('savedLocations', JSON.stringify(locations));
+    localStorage.setItem("savedLocations", JSON.stringify(locations));
   }, [locations]);
 
   const handleOpenDialog = (index = null) => {
@@ -161,7 +162,7 @@ const SavedLocations = () => {
       setEditIndex(index);
     } else {
       // Add new location
-      setNewLocation({ name: '', address: '', notes: '' });
+      setNewLocation({ name: "", address: "", notes: "" });
       setEditIndex(null);
     }
     setOpenDialog(true);
@@ -175,7 +176,7 @@ const SavedLocations = () => {
     const { name, value, checked, type } = e.target;
     setNewLocation({
       ...newLocation,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: type === "checkbox" ? checked : value,
     });
   };
 
@@ -184,8 +185,8 @@ const SavedLocations = () => {
     if (!newLocation.name || !newLocation.address) {
       setNotification({
         open: true,
-        message: 'Name and address are required',
-        severity: 'error',
+        message: "Name and address are required",
+        severity: "error",
       });
       return;
     }
@@ -198,7 +199,7 @@ const SavedLocations = () => {
       } = await supabase.auth.getUser();
 
       if (userError || !user) {
-        throw new Error('User not authenticated');
+        throw new Error("User not authenticated");
       }
 
       if (editIndex !== null) {
@@ -218,8 +219,8 @@ const SavedLocations = () => {
 
         setNotification({
           open: true,
-          message: 'Location updated successfully',
-          severity: 'success',
+          message: "Location updated successfully",
+          severity: "success",
         });
       } else {
         // Add new location to database
@@ -239,12 +240,12 @@ const SavedLocations = () => {
 
         setNotification({
           open: true,
-          message: 'Location saved successfully',
-          severity: 'success',
+          message: "Location saved successfully",
+          severity: "success",
         });
       }
     } catch (error) {
-      console.error('Error saving location:', error.message);
+      console.error("Error saving location:", error.message);
 
       // Fallback to local storage only
       if (editIndex !== null) {
@@ -262,8 +263,8 @@ const SavedLocations = () => {
 
       setNotification({
         open: true,
-        message: 'Location saved locally (offline mode)',
-        severity: 'info',
+        message: "Location saved locally (offline mode)",
+        severity: "info",
       });
     }
 
@@ -303,11 +304,11 @@ const SavedLocations = () => {
 
       setNotification({
         open: true,
-        message: 'Location deleted',
-        severity: 'info',
+        message: "Location deleted",
+        severity: "info",
       });
     } catch (error) {
-      console.error('Error deleting location:', error.message);
+      console.error("Error deleting location:", error.message);
 
       // Still update local state even if database operation fails
       const updatedLocations = locations.filter((_, i) => i !== index);
@@ -315,8 +316,8 @@ const SavedLocations = () => {
 
       setNotification({
         open: true,
-        message: 'Location deleted (offline mode)',
-        severity: 'info',
+        message: "Location deleted (offline mode)",
+        severity: "info",
       });
     }
 
@@ -328,7 +329,7 @@ const SavedLocations = () => {
     setNotification({
       open: true,
       message: `Navigating to ${location.name}`,
-      severity: 'info',
+      severity: "info",
     });
 
     // Open Google Maps with the location address or coordinates
@@ -337,13 +338,13 @@ const SavedLocations = () => {
       const encodedAddress = encodeURIComponent(location.address);
       window.open(
         `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`,
-        '_blank'
+        "_blank"
       );
     } else if (location.lat && location.lng) {
       // Fall back to coordinates if available
       window.open(
         `https://www.google.com/maps/dir/?api=1&destination=${location.lat},${location.lng}`,
-        '_blank'
+        "_blank"
       );
     }
   };
@@ -352,8 +353,8 @@ const SavedLocations = () => {
     if (navigator.geolocation) {
       setNotification({
         open: true,
-        message: 'Getting your current location...',
-        severity: 'info',
+        message: "Getting your current location...",
+        severity: "info",
       });
 
       navigator.geolocation.getCurrentPosition(
@@ -364,12 +365,12 @@ const SavedLocations = () => {
           // Reverse geocode to get the address
           fetch(
             `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${
-              import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
+              import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ""
             }`
           )
             .then((response) => response.json())
             .then((data) => {
-              if (data.status === 'OK' && data.results.length > 0) {
+              if (data.status === "OK" && data.results.length > 0) {
                 const address = data.results[0].formatted_address;
                 setNewLocation({
                   ...newLocation,
@@ -387,7 +388,7 @@ const SavedLocations = () => {
               }
             })
             .catch((error) => {
-              console.error('Error getting address:', error);
+              console.error("Error getting address:", error);
               setNewLocation({
                 ...newLocation,
                 address: `Latitude: ${lat}, Longitude: ${lng}`,
@@ -397,19 +398,19 @@ const SavedLocations = () => {
             });
         },
         (error) => {
-          console.error('Error getting location:', error);
+          console.error("Error getting location:", error);
           setNotification({
             open: true,
-            message: 'Could not get your location. Please check permissions.',
-            severity: 'error',
+            message: "Could not get your location. Please check permissions.",
+            severity: "error",
           });
         }
       );
     } else {
       setNotification({
         open: true,
-        message: 'Geolocation is not supported by this browser.',
-        severity: 'error',
+        message: "Geolocation is not supported by this browser.",
+        severity: "error",
       });
     }
   };
@@ -425,47 +426,60 @@ const SavedLocations = () => {
   return (
     <Box
       sx={{
-        width: '100%',
-        maxWidth: '100%',
-        minHeight: '100vh',
-        bgcolor: 'background.default',
-        color: 'text.primary',
+        width: "100%",
+        maxWidth: "100%",
+        minHeight: "100vh",
+        bgcolor: "background.default",
+        color: "text.primary",
         pt: { xs: 2, sm: 3 },
         pb: { xs: 6, sm: 8 },
-      }}>
-      <Container maxWidth='lg' sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
+      }}
+    >
+      <Container 
+        maxWidth="lg" 
+        sx={{ 
+          px: { xs: 2, sm: 3, md: 4 },
+          maxWidth: "1200px", // Uniform max width
+          mx: "auto", // Center the container
+        }}
+      >
+       
+
         {/* Header */}
         <Box
           sx={{
-            display: 'flex',
-            alignItems: 'center',
+            display: "flex",
+            alignItems: "center",
             mb: { xs: 3, sm: 4 },
-            flexWrap: 'wrap',
+            flexWrap: "wrap",
             gap: 1,
-          }}>
-          <IconButton onClick={handleBack} edge='start' sx={{ mr: 1 }}>
+          }}
+        >
+          <IconButton onClick={handleBack} edge="start" sx={{ mr: 1 }}>
             <ArrowBackIcon />
           </IconButton>
           <Typography
-            variant={isMobile ? 'h5' : 'h4'}
-            component='h1'
+            variant={isMobile ? "h5" : "h4"}
+            component="h1"
             sx={{
               fontWeight: 600,
-              display: 'flex',
-              alignItems: 'center',
-              fontSize: { xs: '1.4rem', sm: '1.8rem', md: '2.2rem' },
-            }}>
+              display: "flex",
+              alignItems: "center",
+              fontSize: { xs: "1.4rem", sm: "1.8rem", md: "2.2rem" },
+            }}
+          >
             <LocationOnIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
             Saved Locations
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
           <Button
-            variant='contained'
-            color='primary'
+            variant="contained"
+            color="primary"
             startIcon={<AddLocationAltIcon />}
             onClick={() => handleOpenDialog()}
-            size={isMobile ? 'small' : 'medium'}
-            sx={{ borderRadius: 1 }}>
+            size={isMobile ? "small" : "medium"}
+            sx={{ borderRadius: 1 }}
+          >
             Add Location
           </Button>
         </Box>
@@ -477,21 +491,22 @@ const SavedLocations = () => {
             p: 2,
             mb: 4,
             borderRadius: 2,
-            display: 'flex',
-            alignItems: 'center',
-            flexDirection: { xs: 'column', sm: 'row' },
+            display: "flex",
+            alignItems: "center",
+            flexDirection: { xs: "column", sm: "row" },
             gap: 2,
-          }}>
+          }}
+        >
           <TextField
             fullWidth
-            placeholder='Search locations by name or address...'
-            variant='outlined'
-            size='small'
+            placeholder="Search locations by name or address..."
+            variant="outlined"
+            size="small"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             InputProps={{
               startAdornment: (
-                <InputAdornment position='start'>
+                <InputAdornment position="start">
                   <SearchIcon />
                 </InputAdornment>
               ),
@@ -501,86 +516,89 @@ const SavedLocations = () => {
 
         {/* Locations Grid - Modern Design */}
         {loading ? (
-          <Box sx={{ textAlign: 'center', py: 8 }}>
+          <Box sx={{ textAlign: "center", py: 8 }}>
             <CircularProgress />
           </Box>
         ) : filteredLocations.length > 0 ? (
           <Box
             sx={{
               py: 2,
-              display: 'grid',
+              display: "grid",
               gridTemplateColumns: {
-                xs: '1fr',
-                sm: 'repeat(2, 1fr)',
-                md: 'repeat(3, 1fr)',
-                lg: 'repeat(4, 1fr)',
+                xs: "1fr",
+                sm: "repeat(2, 1fr)",
+                md: "repeat(3, 1fr)",
+                lg: "repeat(4, 1fr)",
               },
               gap: { xs: 2, sm: 3 },
-              width: '100%',
-            }}>
+              width: "100%",
+            }}
+          >
             {filteredLocations.map((location, index) => (
               <Paper
                 key={location.id || index}
                 elevation={3}
                 sx={{
                   borderRadius: 2,
-                  overflow: 'hidden',
-                  position: 'relative',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
+                  overflow: "hidden",
+                  position: "relative",
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
                   background: isDarkMode
                     ? alpha(theme.palette.background.paper, 0.15)
                     : theme.palette.background.paper,
-                  border: '1px solid',
+                  border: "1px solid",
                   borderColor: isDarkMode
-                    ? alpha('rgb(250, 167, 43)', 0.2)
+                    ? alpha("rgb(250, 167, 43)", 0.2)
                     : alpha(theme.palette.divider, 0.5),
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    transform: "translateY(-4px)",
                     boxShadow: theme.shadows[8],
                     borderColor: isDarkMode
-                      ? alpha('rgb(248, 166, 43)', 0.4)
+                      ? alpha("rgb(248, 166, 43)", 0.4)
                       : alpha(theme.palette.primary.main, 0.3),
                   },
-                }}>
+                }}
+              >
                 {/* Header with icon and name - clickable for navigation */}
                 <Box
                   onClick={() => handleNavigateToLocation(location)}
                   sx={{
                     p: 2,
-                    display: 'flex',
-                    alignItems: 'center',
+                    display: "flex",
+                    alignItems: "center",
                     gap: 1.5,
-                    borderBottom: '1px solid',
+                    borderBottom: "1px solid",
                     borderColor: isDarkMode
                       ? alpha(theme.palette.divider, 0.2)
                       : theme.palette.divider,
                     background: location.isHome
                       ? isDarkMode
-                        ? alpha('rgb(252, 165, 35)', 0.15)
+                        ? alpha("rgb(252, 165, 35)", 0.15)
                         : alpha(theme.palette.primary.light, 0.15)
                       : isDarkMode
-                      ? alpha('rgb(251, 165, 45)', 0.1)
+                      ? alpha("rgb(251, 165, 45)", 0.1)
                       : alpha(theme.palette.secondary.light, 0.08),
-                    cursor: 'pointer',
-                    '&:hover': {
+                    cursor: "pointer",
+                    "&:hover": {
                       background: location.isHome
                         ? isDarkMode
-                          ? alpha('#FF9800', 0.2)
+                          ? alpha("#FF9800", 0.2)
                           : alpha(theme.palette.primary.light, 0.25)
                         : isDarkMode
-                        ? alpha('rgb(255, 144, 34)', 0.15)
+                        ? alpha("rgb(255, 144, 34)", 0.15)
                         : alpha(theme.palette.secondary.light, 0.15),
                     },
-                  }}>
+                  }}
+                >
                   <Box
                     sx={{
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
+                      borderRadius: "50%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                       p: 1,
                       background: isDarkMode
                         ? alpha(theme.palette.common.white, 0.05)
@@ -588,18 +606,19 @@ const SavedLocations = () => {
                       boxShadow: `0 0 0 2px ${
                         location.isHome
                           ? isDarkMode
-                            ? alpha('#FF9800', 0.5)
+                            ? alpha("#FF9800", 0.5)
                             : alpha(theme.palette.primary.main, 0.4)
                           : isDarkMode
-                          ? alpha('#FF5722', 0.5)
+                          ? alpha("#FF5722", 0.5)
                           : alpha(theme.palette.secondary.main, 0.4)
                       }`,
-                    }}>
+                    }}
+                  >
                     {location.isHome ? (
                       <HomeIcon
                         sx={{
                           color: isDarkMode
-                            ? '#FFB74D'
+                            ? "#FFB74D"
                             : theme.palette.primary.main,
                           fontSize: 28,
                         }}
@@ -608,7 +627,7 @@ const SavedLocations = () => {
                       <LocationOnIcon
                         sx={{
                           color: isDarkMode
-                            ? '#FF8A65'
+                            ? "#FF8A65"
                             : theme.palette.secondary.main,
                           fontSize: 28,
                         }}
@@ -616,18 +635,19 @@ const SavedLocations = () => {
                     )}
                   </Box>
                   <Typography
-                    variant='h6'
+                    variant="h6"
                     sx={{
                       fontWeight: 600,
                       color: isDarkMode
-                        ? '#FAFAFA'
+                        ? "#FAFAFA"
                         : theme.palette.text.primary,
-                      fontSize: { xs: '1rem', sm: '1.1rem' },
+                      fontSize: { xs: "1rem", sm: "1.1rem" },
                       flex: 1,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}>
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
                     {location.name}
                   </Typography>
                 </Box>
@@ -636,37 +656,40 @@ const SavedLocations = () => {
                 <Box
                   sx={{
                     p: 2,
-                    cursor: 'pointer',
+                    cursor: "pointer",
                     flexGrow: 1,
-                    display: 'flex',
-                    flexDirection: 'column',
+                    display: "flex",
+                    flexDirection: "column",
                   }}
-                  onClick={() => handleNavigateToLocation(location)}>
+                  onClick={() => handleNavigateToLocation(location)}
+                >
                   <Typography
-                    variant='body1'
+                    variant="body1"
                     sx={{
                       color: isDarkMode
-                        ? '#E0E0E0'
+                        ? "#E0E0E0"
                         : theme.palette.text.secondary,
                       mb: 1,
-                      fontSize: '0.9rem',
-                      wordBreak: 'break-word',
-                    }}>
+                      fontSize: "0.9rem",
+                      wordBreak: "break-word",
+                    }}
+                  >
                     {location.address}
                   </Typography>
 
                   {location.notes && (
                     <Typography
-                      variant='body2'
+                      variant="body2"
                       sx={{
                         color: isDarkMode
-                          ? alpha('#E0E0E0', 0.7)
+                          ? alpha("#E0E0E0", 0.7)
                           : alpha(theme.palette.text.secondary, 0.8),
-                        fontSize: '0.8rem',
-                        mt: 'auto',
+                        fontSize: "0.8rem",
+                        mt: "auto",
                         pt: 1,
-                        fontStyle: 'italic',
-                      }}>
+                        fontStyle: "italic",
+                      }}
+                    >
                       {location.notes}
                     </Typography>
                   )}
@@ -675,55 +698,58 @@ const SavedLocations = () => {
                 {/* Action buttons - moved to bottom */}
                 <Box
                   sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    borderTop: '1px solid',
+                    display: "flex",
+                    justifyContent: "space-between",
+                    borderTop: "1px solid",
                     borderColor: isDarkMode
                       ? alpha(theme.palette.divider, 0.2)
                       : theme.palette.divider,
                     bgcolor: isDarkMode
-                      ? alpha('#424242', 0.7)
+                      ? alpha("#424242", 0.7)
                       : alpha(theme.palette.background.default, 0.5),
-                    mt: 'auto',
-                  }}>
+                    mt: "auto",
+                  }}
+                >
                   <IconButton
-                    aria-label='Edit location'
+                    aria-label="Edit location"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleOpenDialog(index);
                     }}
                     sx={{
                       flex: 1,
-                      color: isDarkMode ? '#4FC3F7' : theme.palette.info.main,
+                      color: isDarkMode ? "#4FC3F7" : theme.palette.info.main,
                       py: 1.2,
                       borderRadius: 0,
-                      '&:hover': {
+                      "&:hover": {
                         bgcolor: isDarkMode
-                          ? alpha('#4FC3F7', 0.1)
+                          ? alpha("#4FC3F7", 0.1)
                           : alpha(theme.palette.info.main, 0.08),
                       },
-                    }}>
-                    <EditIcon fontSize='small' />
+                    }}
+                  >
+                    <EditIcon fontSize="small" />
                   </IconButton>
-                  <Divider orientation='vertical' flexItem />
+                  <Divider orientation="vertical" flexItem />
                   <IconButton
-                    aria-label='Delete location'
+                    aria-label="Delete location"
                     onClick={(e) => {
                       e.stopPropagation();
                       openDeleteConfirmation(index);
                     }}
                     sx={{
                       flex: 1,
-                      color: isDarkMode ? '#EF9A9A' : theme.palette.error.main,
+                      color: isDarkMode ? "#EF9A9A" : theme.palette.error.main,
                       py: 1.2,
                       borderRadius: 0,
-                      '&:hover': {
+                      "&:hover": {
                         bgcolor: isDarkMode
-                          ? alpha('#EF9A9A', 0.1)
+                          ? alpha("#EF9A9A", 0.1)
                           : alpha(theme.palette.error.main, 0.08),
                       },
-                    }}>
-                    <DeleteIcon fontSize='small' />
+                    }}
+                  >
+                    <DeleteIcon fontSize="small" />
                   </IconButton>
                 </Box>
               </Paper>
@@ -735,33 +761,35 @@ const SavedLocations = () => {
             sx={{
               p: 5,
               borderRadius: 2,
-              textAlign: 'center',
+              textAlign: "center",
               bgcolor: isDarkMode
                 ? alpha(theme.palette.background.paper, 0.4)
                 : theme.palette.background.paper,
-            }}>
+            }}
+          >
             <LocationOnIcon
               sx={{
                 fontSize: 60,
-                color: 'text.secondary',
+                color: "text.secondary",
                 opacity: 0.5,
                 mb: 2,
               }}
             />
-            <Typography variant='h6' gutterBottom>
+            <Typography variant="h6" gutterBottom>
               No locations saved yet
             </Typography>
-            <Typography variant='body1' color='text.secondary' paragraph>
+            <Typography variant="body1" color="text.secondary" paragraph>
               {searchTerm
-                ? 'No locations match your search criteria'
-                : 'Add your important places to easily find them later'}
+                ? "No locations match your search criteria"
+                : "Add your important places to easily find them later"}
             </Typography>
             <Button
-              variant='contained'
-              color='primary'
+              variant="contained"
+              color="primary"
               startIcon={<AddLocationAltIcon />}
               onClick={() => handleOpenDialog()}
-              sx={{ mt: 2 }}>
+              sx={{ mt: 2 }}
+            >
               Add First Location
             </Button>
           </Paper>
@@ -772,35 +800,36 @@ const SavedLocations = () => {
       <Dialog
         open={openDialog}
         onClose={handleCloseDialog}
-        maxWidth='sm'
-        fullWidth>
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>
-          {editIndex !== null ? 'Edit Location' : 'Add New Location'}
+          {editIndex !== null ? "Edit Location" : "Add New Location"}
         </DialogTitle>
         <DialogContent>
-          <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box sx={{ mt: 1, display: "flex", flexDirection: "column", gap: 2 }}>
             <TextField
               fullWidth
-              label='Location Name'
-              name='name'
+              label="Location Name"
+              name="name"
               value={newLocation.name}
               onChange={handleInputChange}
               required
-              variant='outlined'
-              margin='dense'
-              placeholder='Home, Work, etc.'
+              variant="outlined"
+              margin="dense"
+              placeholder="Home, Work, etc."
             />
-            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+            <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
               <TextField
                 fullWidth
-                label='Address'
-                name='address'
+                label="Address"
+                name="address"
                 value={newLocation.address}
                 onChange={handleInputChange}
                 required
-                variant='outlined'
-                margin='dense'
-                placeholder='Enter full address'
+                variant="outlined"
+                margin="dense"
+                placeholder="Enter full address"
                 multiline
                 rows={2}
               />
@@ -810,28 +839,26 @@ const SavedLocations = () => {
             </Box>
             <TextField
               fullWidth
-              label='Notes (optional)'
-              name='notes'
-              value={newLocation.notes || ''}
+              label="Notes (optional)"
+              name="notes"
+              value={newLocation.notes || ""}
               onChange={handleInputChange}
-              variant='outlined'
-              margin='dense'
-              placeholder='Any additional details about this location'
+              variant="outlined"
+              margin="dense"
+              placeholder="Any additional details about this location"
               multiline
               rows={3}
             />
-            <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-              
-            
-            </Box>
-          </Box>  
+            <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}></Box>
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
           <Button
             onClick={handleSaveLocation}
-            variant='contained'
-            color='primary'>
+            variant="contained"
+            color="primary"
+          >
             Save
           </Button>
         </DialogActions>
@@ -848,7 +875,7 @@ const SavedLocations = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={closeDeleteConfirmation}>Cancel</Button>
-          <Button onClick={handleDeleteLocation} color='error'>
+          <Button onClick={handleDeleteLocation} color="error">
             Delete
           </Button>
         </DialogActions>
@@ -859,10 +886,12 @@ const SavedLocations = () => {
         open={notification.open}
         autoHideDuration={6000}
         onClose={handleCloseNotification}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
         <Alert
           onClose={handleCloseNotification}
-          severity={notification.severity}>
+          severity={notification.severity}
+        >
           {notification.message}
         </Alert>
       </Snackbar>
@@ -874,16 +903,16 @@ const SavedLocations = () => {
 const CircularProgress = () => (
   <Box
     sx={{
-      display: 'inline-block',
+      display: "inline-block",
       width: 40,
       height: 40,
-      border: '4px solid rgba(0, 0, 0, 0.1)',
-      borderRadius: '50%',
-      borderTopColor: 'primary.main',
-      animation: 'spin 1s ease-in-out infinite',
-      '@keyframes spin': {
+      border: "4px solid rgba(0, 0, 0, 0.1)",
+      borderRadius: "50%",
+      borderTopColor: "primary.main",
+      animation: "spin 1s ease-in-out infinite",
+      "@keyframes spin": {
         to: {
-          transform: 'rotate(360deg)',
+          transform: "rotate(360deg)",
         },
       },
     }}

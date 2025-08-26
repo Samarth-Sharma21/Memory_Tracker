@@ -30,10 +30,10 @@ const BreathingGame = lazy(() => import('./pages/BreathingGame'));
 const Settings = lazy(() => import('./pages/Settings'));
 const PricingPage = lazy(() => import('./pages/PricingPage'));
 const SavedLocations = lazy(() => import('./pages/SavedLocations'));
-const CalendarPage = lazy(() => import('./pages/CalendarPage'));
-const TaskManagerPage = lazy(() => import('./pages/TaskManagerPage'));
+const CalendarPage = lazy(() => import('./pages/calendarpage'));
+const TaskManagerPage = lazy(() => import('./pages/taskmanagerpage'));
 const FamilyTaskManagerPage = lazy(() =>
-  import('./pages/FamilyTaskManagerPage')
+  import('./pages/familytaskmanagerpage')
 );
 
 // Loading component for suspense fallback

@@ -47,7 +47,7 @@ import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import SaveIcon from '@mui/icons-material/Save';
-import { AccessibilityControls, EmergencyContact } from '../components';
+import { AccessibilityControls, EmergencyContact, UniversalSearch } from '../components';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, locationService } from '../backend/server';
@@ -357,8 +357,18 @@ const Settings = () => {
         mt: { xs: 2, sm: 3, md: 4 },
         mb: { xs: 3, sm: 4, md: 5 },
         px: { xs: 1.5, sm: 3, md: 3 },
+        maxWidth: "900px", // Uniform max width for Settings page
+        mx: "auto", // Center the container
       }}>
       <div>
+        {/* Universal Search Bar */}
+        <Box sx={{ mb: 4 }}>
+          <UniversalSearch 
+            isFullWidth={true}
+            placeholder="Search memories, locations, people, or tasks..."
+          />
+        </Box>
+
         <Box
           sx={{
             display: 'flex',

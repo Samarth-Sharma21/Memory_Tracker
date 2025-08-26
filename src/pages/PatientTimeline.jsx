@@ -11,7 +11,7 @@ import {
 import { motion } from 'framer-motion';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import HomeIcon from '@mui/icons-material/Home';
-import { MemoryTimeline } from '../components';
+import { MemoryTimeline, UniversalSearch } from '../components';
 
 const PatientTimeline = () => {
   const navigate = useNavigate();
@@ -21,11 +21,27 @@ const PatientTimeline = () => {
   };
 
   return (
-    <Container maxWidth='lg' sx={{ py: 4 }}>
+    <Container 
+      maxWidth='lg' 
+      sx={{ 
+        py: 4,
+        maxWidth: "1200px", // Uniform max width
+        mx: "auto", // Center the container
+      }}
+    >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}>
+        
+        {/* Universal Search Bar */}
+        <Box sx={{ mb: 4 }}>
+          <UniversalSearch 
+            isFullWidth={true}
+            placeholder="Search your memories, people, or locations..."
+          />
+        </Box>
+
         {/* Header Section */}
         <Box sx={{ mb: 4 }}>
           <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 2 }}>

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../backend/server';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } 
+ from '../contexts/AuthContext';
 import { useMemory } from '../contexts/MemoryContext';
 import {
   Box,
@@ -15,7 +16,7 @@ import {
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
-import { MemoryForm } from '../components';
+import { MemoryForm, UniversalSearch } from '../components';
 
 const AddMemory = () => {
   const navigate = useNavigate();
@@ -154,8 +155,24 @@ const AddMemory = () => {
   };
 
   return (
-    <Container maxWidth='md' sx={{ mt: 2, mb: 4 }}>
+    <Container 
+      maxWidth='md' 
+      sx={{ 
+        mt: 2, 
+        mb: 4,
+        maxWidth: "800px", // Uniform max width for Add Memory page
+        mx: "auto", // Center the container
+      }}
+    >
       <Box sx={{ width: '100%' }}>
+        {/* Universal Search Bar */}
+        <Box sx={{ mb: 4 }}>
+          <UniversalSearch 
+            isFullWidth={true}
+            placeholder="Search memories, locations, or people..."
+          />
+        </Box>
+
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
           <Button
             startIcon={<ArrowBackIcon />}

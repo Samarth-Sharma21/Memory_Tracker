@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { supabase, locationService } from '../backend/server';
-import { useAuth } from '../contexts/AuthContext';
+import { useState, useEffect } from "react";
+import { supabase, locationService } from "../backend/server";
+import { useAuth } from "../contexts/AuthContext";
 import {
   Box,
   Typography,
@@ -18,28 +18,28 @@ import {
   Snackbar,
   CircularProgress,
   useTheme,
-} from '@mui/material';
+} from "@mui/material";
 import {
   useResponsive,
   commonResponsiveStyles,
-} from '../styles/responsiveStyles';
-import { motion } from 'framer-motion';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import HomeIcon from '@mui/icons-material/Home';
-import ShareIcon from '@mui/icons-material/Share';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
-import MyLocationIcon from '@mui/icons-material/MyLocation';
+} from "../styles/responsiveStyles";
+import { motion } from "framer-motion";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import HomeIcon from "@mui/icons-material/Home";
+import ShareIcon from "@mui/icons-material/Share";
+import DeleteIcon from "@mui/icons-material/Delete";
+import AddIcon from "@mui/icons-material/Add";
+import MyLocationIcon from "@mui/icons-material/MyLocation";
 
 const LocationTracker = () => {
   const { user } = useAuth();
   const theme = useTheme();
-  const isDarkMode = theme.palette.mode === 'dark';
+  const isDarkMode = theme.palette.mode === "dark";
   const { isExtraSmallMobile, isMobile, isTablet, isLaptop, isDesktop } =
     useResponsive();
   const [currentLocation, setCurrentLocation] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [savedLocations, setSavedLocations] = useState([]);
 
   // Fetch saved locations from database
@@ -69,8 +69,8 @@ const LocationTracker = () => {
           setSavedLocations(data);
         }
       } catch (error) {
-        console.error('Error fetching locations:', error.message);
-        setError('Failed to load saved locations');
+        console.error("Error fetching locations:", error.message);
+        setError("Failed to load saved locations");
       } finally {
         setLoading(false);
       }
@@ -78,23 +78,23 @@ const LocationTracker = () => {
 
     fetchLocations();
   }, []);
-  const [newLocationName, setNewLocationName] = useState('');
+  const [newLocationName, setNewLocationName] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [notification, setNotification] = useState({
     open: false,
-    message: '',
-    severity: 'success',
+    message: "",
+    severity: "success",
   });
 
   // Get current location
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
-      setError('Geolocation is not supported by your browser');
+      setError("Geolocation is not supported by your browser");
       return;
     }
 
     setLoading(true);
-    setError('');
+    setError("");
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
@@ -104,12 +104,12 @@ const LocationTracker = () => {
           setCurrentLocation({
             lat: position.coords.latitude,
             lng: position.coords.longitude,
-            address: 'Current location (coordinates available)',
+            address: "Current location (coordinates available)",
           });
           setLoading(false);
-          showNotification('Location successfully detected', 'success');
+          showNotification("Location successfully detected", "success");
         } catch (error) {
-          setError('Error getting address from coordinates');
+          setError("Error getting address from coordinates");
           setLoading(false);
         }
       },
@@ -124,7 +124,7 @@ const LocationTracker = () => {
   // Save current location
   const saveCurrentLocation = async () => {
     if (!currentLocation || !newLocationName.trim()) {
-      showNotification('Please provide a name for this location', 'error');
+      showNotification("Please provide a name for this location", "error");
       return;
     }
 
@@ -136,7 +136,7 @@ const LocationTracker = () => {
       } = await supabase.auth.getUser();
 
       if (userError || !user) {
-        throw new Error('User not authenticated');
+        throw new Error("User not authenticated");
       }
 
       const newLocation = {
@@ -144,7 +144,6 @@ const LocationTracker = () => {
         address: currentLocation.address,
         lat: currentLocation.lat,
         lng: currentLocation.lng,
-
       };
 
       // Save to database
@@ -163,16 +162,16 @@ const LocationTracker = () => {
 
       const updatedLocations = [...savedLocations, locationWithId];
       setSavedLocations(updatedLocations);
-      
+
       // Save to localStorage as backup
-      localStorage.setItem('savedLocations', JSON.stringify(updatedLocations));
-      
-      setNewLocationName('');
+      localStorage.setItem("savedLocations", JSON.stringify(updatedLocations));
+
+      setNewLocationName("");
       setShowAddForm(false);
-      showNotification('Location saved successfully', 'success');
+      showNotification("Location saved successfully", "success");
     } catch (error) {
-      console.error('Error saving location:', error.message);
-      showNotification('Failed to save location', 'error');
+      console.error("Error saving location:", error.message);
+      showNotification("Failed to save location", "error");
     }
   };
 
@@ -193,16 +192,16 @@ const LocationTracker = () => {
         ...location,
         isHome: location.id === id,
       }));
-      
+
       setSavedLocations(updatedLocations);
-      
+
       // Update localStorage
-      localStorage.setItem('savedLocations', JSON.stringify(updatedLocations));
-      
-      showNotification('Home location updated', 'success');
+      localStorage.setItem("savedLocations", JSON.stringify(updatedLocations));
+
+      showNotification("Home location updated", "success");
     } catch (error) {
-      console.error('Error updating home location:', error.message);
-      showNotification('Failed to update home location', 'error');
+      console.error("Error updating home location:", error.message);
+      showNotification("Failed to update home location", "error");
     }
   };
 
@@ -216,10 +215,10 @@ const LocationTracker = () => {
       setSavedLocations(
         savedLocations.filter((location) => location.id !== id)
       );
-      showNotification('Location deleted', 'success');
+      showNotification("Location deleted", "success");
     } catch (error) {
-      console.error('Error deleting location:', error.message);
-      showNotification('Failed to delete location', 'error');
+      console.error("Error deleting location:", error.message);
+      showNotification("Failed to delete location", "error");
     }
   };
 
@@ -233,12 +232,12 @@ const LocationTracker = () => {
           url: `https://maps.google.com/?q=${location.address}`,
         });
       } catch (error) {
-        console.error('Error sharing:', error);
+        console.error("Error sharing:", error);
       }
     } else {
       // Fallback for browsers that don't support the Web Share API
       navigator.clipboard.writeText(`${location.name}: ${location.address}`);
-      showNotification('Location copied to clipboard', 'success');
+      showNotification("Location copied to clipboard", "success");
     }
   };
 
@@ -253,31 +252,32 @@ const LocationTracker = () => {
   };
 
   return (
-    <Box sx={{ width: '100%' }}>
-      <Typography variant='h4' component='h2' gutterBottom>
+    <Box sx={{ width: "100%" }}>
+      <Typography variant="h4" component="h2" gutterBottom>
         Location Tracker
       </Typography>
 
       <Paper elevation={3} sx={{ p: 3, mb: 4, borderRadius: 2 }}>
-        <Typography variant='h6' gutterBottom>
+        <Typography variant="h6" gutterBottom>
           Current Location
         </Typography>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
           <Button
-            variant='contained'
-            color='primary'
+            variant="contained"
+            color="primary"
             startIcon={<MyLocationIcon />}
             onClick={getCurrentLocation}
             disabled={loading}
-            sx={{ mr: 2 }}>
-            {loading ? 'Detecting...' : 'Get My Location'}
+            sx={{ mr: 2 }}
+          >
+            {loading ? "Detecting..." : "Get My Location"}
           </Button>
           {loading && <CircularProgress size={24} sx={{ ml: 1 }} />}
         </Box>
 
         {error && (
-          <Alert severity='error' sx={{ mb: 2 }}>
+          <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
         )}
@@ -286,12 +286,13 @@ const LocationTracker = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}>
-            <Paper variant='outlined' sx={{ p: 2, mb: 2 }}>
-              <Typography variant='body1'>
+            transition={{ duration: 0.5 }}
+          >
+            <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+              <Typography variant="body1">
                 <LocationOnIcon
-                  color='primary'
-                  sx={{ verticalAlign: 'middle', mr: 1 }}
+                  color="primary"
+                  sx={{ verticalAlign: "middle", mr: 1 }}
                 />
                 {currentLocation.address}
               </Typography>
@@ -300,30 +301,33 @@ const LocationTracker = () => {
                 <Button
                   startIcon={<AddIcon />}
                   onClick={() => setShowAddForm(true)}
-                  sx={{ mt: 2 }}>
+                  sx={{ mt: 2 }}
+                >
                   Save This Location
                 </Button>
               ) : (
-                <Box sx={{ mt: 2, display: 'flex', alignItems: 'flex-end' }}>
+                <Box sx={{ mt: 2, display: "flex", alignItems: "flex-end" }}>
                   <TextField
-                    label='Location Name'
-                    variant='outlined'
-                    size='small'
+                    label="Location Name"
+                    variant="outlined"
+                    size="small"
                     value={newLocationName}
                     onChange={(e) => setNewLocationName(e.target.value)}
                     sx={{ mr: 2, flexGrow: 1 }}
                   />
                   <Button
-                    variant='contained'
-                    color='primary'
+                    variant="contained"
+                    color="primary"
                     onClick={saveCurrentLocation}
-                    disabled={!newLocationName.trim()}>
+                    disabled={!newLocationName.trim()}
+                  >
                     Save
                   </Button>
                   <Button
-                    variant='text'
+                    variant="text"
                     onClick={() => setShowAddForm(false)}
-                    sx={{ ml: 1 }}>
+                    sx={{ ml: 1 }}
+                  >
                     Cancel
                   </Button>
                 </Box>
@@ -334,12 +338,12 @@ const LocationTracker = () => {
       </Paper>
 
       <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
-        <Typography variant='h6' gutterBottom>
+        <Typography variant="h6" gutterBottom>
           Saved Locations
         </Typography>
 
         {savedLocations.length === 0 ? (
-          <Typography variant='body1' color='text.secondary' sx={{ py: 2 }}>
+          <Typography variant="body1" color="text.secondary" sx={{ py: 2 }}>
             No saved locations yet. Use the "Get My Location" button above to
             add locations.
           </Typography>
@@ -350,56 +354,61 @@ const LocationTracker = () => {
                 key={location.id}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}>
+                transition={{ delay: index * 0.1 }}
+              >
                 <ListItem
                   sx={{
                     bgcolor: location.isHome
-                      ? 'rgba(106, 90, 205, 0.1)'
-                      : 'transparent',
+                      ? "rgba(106, 90, 205, 0.1)"
+                      : "transparent",
                     borderRadius: 1,
-                  }}>
+                  }}
+                >
                   <ListItemIcon>
                     {location.isHome ? (
-                      <HomeIcon color='primary' />
+                      <HomeIcon color="primary" />
                     ) : (
-                      <LocationOnIcon color='secondary' />
+                      <LocationOnIcon color="secondary" />
                     )}
                   </ListItemIcon>
                   <ListItemText
                     primary={location.name}
                     secondary={location.address}
                     primaryTypographyProps={{
-                      fontWeight: location.isHome ? 'bold' : 'normal',
+                      fontWeight: location.isHome ? "bold" : "normal",
                     }}
                   />
                   <ListItemSecondaryAction>
-                    <Tooltip title='Share Location'>
+                    <Tooltip title="Share Location">
                       <IconButton
-                        edge='end'
-                        onClick={() => shareLocation(location)}>
+                        edge="end"
+                        onClick={() => shareLocation(location)}
+                      >
                         <ShareIcon />
                       </IconButton>
                     </Tooltip>
                     {!location.isHome && (
-                      <Tooltip title='Set as Home'>
+                      <Tooltip title="Set as Home">
                         <IconButton
-                          edge='end'
-                          onClick={() => setAsHome(location.id)}>
+                          edge="end"
+                          onClick={() => setAsHome(location.id)}
+                        >
                           <HomeIcon />
                         </IconButton>
                       </Tooltip>
                     )}
-                    <Tooltip title='Delete Location'>
+                    <Tooltip title="Delete Location">
                       <IconButton
-                        edge='end'
-                        onClick={() => deleteLocation(location.id)}>
+                        edge="end"
+                        onClick={() => deleteLocation(location.id)}
+                      >
                         <DeleteIcon />
                       </IconButton>
                     </Tooltip>
                   </ListItemSecondaryAction>
                 </ListItem>
                 {index < savedLocations.length - 1 && (
-                  <Divider variant='inset' component='li' />
+                  <Divider variant="inset" component="li" />
                 )}
               </motion.div>
             ))}
@@ -411,11 +420,13 @@ const LocationTracker = () => {
         open={notification.open}
         autoHideDuration={4000}
         onClose={closeNotification}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
         <Alert
           onClose={closeNotification}
           severity={notification.severity}
-          sx={{ width: '100%' }}>
+          sx={{ width: "100%" }}
+        >
           {notification.message}
         </Alert>
       </Snackbar>

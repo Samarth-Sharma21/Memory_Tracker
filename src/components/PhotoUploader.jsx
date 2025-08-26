@@ -125,10 +125,10 @@ const PhotoUploader = ({ onPhotoSelected, defaultImage }) => {
     <Box
       sx={{
         width: '100%',
-        height: '200px',
+        minHeight: '300px',
         border: '2px dashed',
-        borderColor: 'primary.main',
-        borderRadius: 2,
+        borderColor: isDragging ? 'primary.main' : 'grey.300',
+        borderRadius: 1.5,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -136,9 +136,19 @@ const PhotoUploader = ({ onPhotoSelected, defaultImage }) => {
         cursor: 'pointer',
         position: 'relative',
         overflow: 'hidden',
-        bgcolor: 'background.paper',
+        bgcolor: isDragging ? 'primary.50' : 'background.paper',
+        transition: 'all 0.2s ease-in-out',
+        '&:hover': {
+          borderColor: 'primary.main',
+          bgcolor: 'primary.50'
+        }
       }}
-      onClick={handleClick}>
+      onClick={handleClick}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
       {defaultImage ? (
         <img
           src={defaultImage}
@@ -150,17 +160,44 @@ const PhotoUploader = ({ onPhotoSelected, defaultImage }) => {
           }}
         />
       ) : (
-        <>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            py: 4,
+            px: 2,
+            textAlign: 'center'
+          }}
+        >
           <AddPhotoAlternateIcon
-            sx={{ fontSize: 48, color: 'primary.main', mb: 1 }}
+            sx={{ 
+              fontSize: 64, 
+              color: 'primary.main', 
+              mb: 2,
+              opacity: 0.8
+            }}
           />
-          <Typography variant='body1' color='textSecondary'>
+          <Typography 
+            variant='h6' 
+            sx={{ 
+              color: 'text.primary',
+              mb: 1,
+              fontWeight: 500
+            }}
+          >
             Click to upload a photo
           </Typography>
-          <Typography variant='caption' color='textSecondary'>
+          <Typography 
+            variant='body2' 
+            color='textSecondary'
+            sx={{ opacity: 0.8 }}
+          >
             Supports: JPG, PNG, GIF
           </Typography>
-        </>
+        </Box>
       )}
       <input
         type='file'

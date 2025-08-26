@@ -180,236 +180,452 @@ const MemoryForm = ({ memoryData, setMemoryData }) => {
   };
 
   return (
-    <Box sx={{ width: '100%', maxWidth: 800, mx: 'auto' }}>
-      <Typography variant='h5' component='h2' gutterBottom sx={{ mb: 3 }}>
+    <Box sx={{ width: '100%' }}>
+      <Typography 
+        variant='h5' 
+        component='h2' 
+        sx={{ 
+          mb: 3,
+          px: 2.5,
+          fontWeight: 500,
+          fontSize: { xs: '1.25rem', sm: '1.5rem' },
+          color: 'text.primary'
+        }}
+      >
         Memory Details
       </Typography>
 
-      <Box>
-        <Grid container spacing={3}>
+      <Box sx={{ width: '100%' }}>
+        <Grid container spacing={2} sx={{ width: '100%', m: 0 }}>
           {/* Memory Type Selection */}
           <Grid item xs={12}>
-            <FormControl fullWidth>
-              <InputLabel id='memory-type-label'>Memory Type</InputLabel>
-              <Select
-                labelId='memory-type-label'
-                id='memory-type'
-                value={memoryType}
-                label='Memory Type'
-                onChange={handleTypeChange}>
-                <MenuItem value='photo'>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <PhotoIcon sx={{ mr: 1 }} />
-                    Photo Memory
-                  </Box>
-                </MenuItem>
-                <MenuItem value='voice'>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <MicIcon sx={{ mr: 1 }} />
-                    Voice Memory
-                  </Box>
-                </MenuItem>
-                <MenuItem value='text'>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <TextSnippetIcon sx={{ mr: 1 }} />
-                    Text Memory
-                  </Box>
-                </MenuItem>
-              </Select>
-            </FormControl>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2.5,
+                mb: 2,
+                bgcolor: 'background.default',
+                borderRadius: 2
+              }}
+            >
+              <FormControl fullWidth>
+                <InputLabel id='memory-type-label'>Memory Type</InputLabel>
+                <Select
+                  labelId='memory-type-label'
+                  id='memory-type'
+                  value={memoryType}
+                  label='Memory Type'
+                  onChange={handleTypeChange}
+                  sx={{
+                    '& .MuiSelect-select': {
+                      display: 'flex',
+                      alignItems: 'center',
+                      py: 1.5
+                    }
+                  }}
+                >
+                  <MenuItem value='photo'>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center',
+                      gap: 1.5
+                    }}>
+                      <PhotoIcon sx={{ color: 'primary.main' }} />
+                      Photo Memory
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value='voice'>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center',
+                      gap: 1.5
+                    }}>
+                      <MicIcon sx={{ color: 'secondary.main' }} />
+                      Voice Memory
+                    </Box>
+                  </MenuItem>
+                  <MenuItem value='text'>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center',
+                      gap: 1.5
+                    }}>
+                      <TextSnippetIcon sx={{ color: 'info.main' }} />
+                      Text Memory
+                    </Box>
+                  </MenuItem>
+                </Select>
+              </FormControl>
+            </Paper>
           </Grid>
 
-          {/* Title and Date - make each field take full width on mobile */}
-          <Grid item xs={12} sm={6}>
-            <TextField
-              required
-              fullWidth
-              label='Memory Title'
-              name='title'
-              value={memoryData.title}
-              onChange={handleInputChange}
-            />
-          </Grid>
+          {/* Title and Date Section */}
+          <Grid item xs={12}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2.5,
+                mb: 2,
+                bgcolor: 'background.default',
+                borderRadius: 2
+              }}
+            >
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={7}>
+                  <TextField
+                    required
+                    fullWidth
+                    label='Memory Title'
+                    name='title'
+                    value={memoryData.title}
+                    onChange={handleInputChange}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 1.5,
+                        bgcolor: 'background.paper'
+                      }
+                    }}
+                  />
+                </Grid>
 
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label='Date'
-              type='date'
-              name='date'
-              value={memoryData.date}
-              onChange={handleInputChange}
-              InputLabelProps={{ shrink: true }}
-            />
+                <Grid item xs={12} sm={5}>
+                  <TextField
+                    fullWidth
+                    label='Date'
+                    type='date'
+                    name='date'
+                    value={memoryData.date}
+                    onChange={handleInputChange}
+                    InputLabelProps={{ shrink: true }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 1.5,
+                        bgcolor: 'background.paper'
+                      }
+                    }}
+                  />
+                </Grid>
+              </Grid>
+            </Paper>
           </Grid>
 
           {/* Location */}
           <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label='Location'
-              name='location'
-              value={memoryData.location || ''}
-              onChange={handleInputChange}
-              placeholder='Enter or select a location'
-              InputProps={{
-                startAdornment: (
-                  <LocationOnIcon color='action' sx={{ mr: 1 }} />
-                ),
-              }}
-            />
-          </Grid>
-
-          {/* People - ensure people input fields are properly stacked on mobile */}
-          <Grid item xs={12}>
-            <Box
+            <Paper
+              elevation={0}
               sx={{
-                display: 'flex',
-                alignItems: { xs: 'stretch', sm: 'flex-start' },
-                flexDirection: { xs: 'column', sm: 'row' },
-                gap: { xs: 2, sm: 0 },
-                mb: 1,
-              }}>
+                p: 2.5,
+                mb: 2,
+                bgcolor: 'background.default',
+                borderRadius: 2
+              }}
+            >
               <TextField
                 fullWidth
-                label='Add People in this Memory'
-                value={newPerson}
-                onChange={(e) => setNewPerson(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleAddPerson()}
-                InputProps={{
-                  startAdornment: <PeopleIcon color='action' sx={{ mr: 1 }} />,
-                }}
-                sx={{ mr: { xs: 0, sm: 1 } }}
-              />
-              <Button
-                variant='contained'
-                color='primary'
-                onClick={handleAddPerson}
-                disabled={!newPerson.trim()}
-                sx={{
-                  alignSelf: { xs: 'flex-end', sm: 'auto' },
-                  minWidth: { xs: '100px', sm: 'auto' },
-                }}>
-                <AddIcon />
-              </Button>
-            </Box>
-
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              {memoryData.people?.map((person) => (
-                <Chip
-                  key={person}
-                  label={person}
-                  onDelete={() => handleRemovePerson(person)}
-                  color='primary'
-                  variant='outlined'
-                />
-              ))}
-            </Box>
-          </Grid>
-
-          <Grid item xs={12}>
-            <Divider sx={{ my: 2 }} />
-          </Grid>
-
-          {/* Memory Content based on type */}
-          <Grid item xs={12}>
-            <Typography variant='h6' gutterBottom>
-              Memory Content
-            </Typography>
-
-            {memoryType === 'photo' && (
-              <Box>
-                <Typography variant='h6' gutterBottom>
-                  Upload a Photo
-                </Typography>
-                <PhotoUploader
-                  onPhotoSelected={handlePhotoUpload}
-                  defaultImage={photoPreview}
-                />
-
-                {/* Photo filters */}
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant='subtitle1' gutterBottom>
-                    Photo Filter
-                  </Typography>
-                  <FormControl fullWidth sx={{ mb: 2 }}>
-                    <InputLabel id='filter-label'>Apply Filter</InputLabel>
-                    <Select
-                      labelId='filter-label'
-                      id='filter'
-                      name='filter'
-                      value={memoryData.filter || 'none'}
-                      label='Apply Filter'
-                      onChange={handleInputChange}>
-                      <MenuItem value='none'>No Filter</MenuItem>
-                      <MenuItem value='polaroid'>Polaroid Frame</MenuItem>
-                      <MenuItem value='sepia'>Sepia Tone</MenuItem>
-                      <MenuItem value='vintage'>Vintage</MenuItem>
-                    </Select>
-                  </FormControl>
-
-                  {photoPreview && (
-                    <Box sx={{ mt: 2, position: 'relative' }}>
-                      <img
-                        src={photoPreview}
-                        alt='Memory Preview'
-                        style={{
-                          width: '100%',
-                          maxHeight: '300px',
-                          objectFit: 'contain',
-                          borderRadius:
-                            memoryData.filter === 'none' ? '4px' : '0',
-                          border:
-                            memoryData.filter === 'polaroid'
-                              ? '15px solid white'
-                              : memoryData.filter === 'sepia'
-                              ? '5px solid #d4b483'
-                              : memoryData.filter === 'vintage'
-                              ? '8px solid #f5f5f5'
-                              : 'none',
-                          boxShadow:
-                            memoryData.filter !== 'none'
-                              ? '0 4px 8px rgba(0, 0, 0, 0.15)'
-                              : 'none',
-                          transform:
-                            memoryData.filter === 'polaroid'
-                              ? 'rotate(-2deg)'
-                              : 'none',
-                          filter:
-                            memoryData.filter === 'sepia'
-                              ? 'sepia(100%)'
-                              : memoryData.filter === 'vintage'
-                              ? 'grayscale(50%)'
-                              : 'none',
-                        }}
-                      />
-                    </Box>
-                  )}
-                </Box>
-              </Box>
-            )}
-
-            {memoryType === 'voice' && (
-              <Box>
-                <Typography variant='h6' gutterBottom>
-                  Record a Voice Memory
-                </Typography>
-                <VoiceRecorder onRecordingComplete={handleVoiceRecorded} />
-              </Box>
-            )}
-
-            {memoryType === 'text' && (
-              <TextField
-                fullWidth
-                multiline
-                rows={6}
-                label='Write your memory'
-                name='content'
-                value={memoryData.content}
+                label='Location'
+                name='location'
+                value={memoryData.location || ''}
                 onChange={handleInputChange}
-                placeholder='Share your thoughts, stories, or memories here...'
+                placeholder='Enter or select a location'
+                InputProps={{
+                  startAdornment: (
+                    <LocationOnIcon color='primary' sx={{ mr: 1 }} />
+                  ),
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 1.5,
+                    bgcolor: 'background.paper'
+                  }
+                }}
               />
-            )}
+            </Paper>
+          </Grid>
+
+          {/* People Section */}
+          <Grid item xs={12}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2.5,
+                mb: 2,
+                bgcolor: 'background.default',
+                borderRadius: 2
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  mb: 2
+                }}
+              >
+                <PeopleIcon color="primary" />
+                <Typography 
+                  variant="subtitle1" 
+                  sx={{ 
+                    fontWeight: 500,
+                  }}
+                >
+                  People in this Memory
+                </Typography>
+              </Box>
+
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1.5,
+                  mb: 2,
+                }}>
+                <TextField
+                  fullWidth
+                  size="medium"
+                  placeholder="Add people to this memory"
+                  value={newPerson}
+                  onChange={(e) => setNewPerson(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleAddPerson()}
+                  sx={{ 
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 1.5,
+                      bgcolor: 'background.paper'
+                    }
+                  }}
+                />
+                <Button
+                  variant='contained'
+                  color='primary'
+                  onClick={handleAddPerson}
+                  disabled={!newPerson.trim()}
+                  sx={{
+                    borderRadius: 1.5,
+                    height: 56,
+                    px: 3,
+                    minWidth: '100px',
+                    boxShadow: 'none',
+                    '&:hover': {
+                      boxShadow: 1
+                    }
+                  }}>
+                  <AddIcon sx={{ mr: 1 }} />
+                  Add
+                </Button>
+              </Box>
+
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  flexWrap: 'wrap', 
+                  gap: 1,
+                  minHeight: '56px',
+                  p: 2,
+                  bgcolor: 'background.paper',
+                  borderRadius: 1.5,
+                  border: 1,
+                  borderColor: 'divider'
+                }}
+              >
+                {memoryData.people?.map((person) => (
+                  <Chip
+                    key={person}
+                    label={person}
+                    onDelete={() => handleRemovePerson(person)}
+                    color='primary'
+                    variant='outlined'
+                    sx={{
+                      borderRadius: '12px',
+                      height: '32px',
+                      '&:hover': {
+                        bgcolor: 'primary.soft',
+                      }
+                    }}
+                  />
+                ))}
+              </Box>
+            </Paper>
+          </Grid>
+
+          {/* Memory Content Section */}
+          <Grid item xs={12}>
+            <Paper
+              elevation={0}
+              sx={{
+                bgcolor: 'background.default',
+                borderRadius: 2,
+                width: '100%'
+              }}
+            >
+              <Box 
+                sx={{
+                  p: 2.5,
+                  pb: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  width: '100%'
+                }}
+              >
+                {memoryType === 'photo' && <PhotoIcon color="primary" />}
+                {memoryType === 'voice' && <MicIcon color="secondary" />}
+                {memoryType === 'text' && <TextSnippetIcon color="info" />}
+                <Typography 
+                  variant='h6' 
+                  sx={{ 
+                    fontWeight: 500,
+                    color: 'text.primary'
+                  }}
+                >
+                  Memory Content
+                </Typography>
+              </Box>
+
+              {memoryType === 'photo' && (
+                <Box
+                  sx={{
+                    width: '100%',
+                    px: 2.5,
+                    pb: 2.5
+                  }}
+                >
+                  <Box 
+                    sx={{ 
+                      width: '100%',
+                      bgcolor: 'background.paper',
+                      borderRadius: 1.5,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <PhotoUploader
+                      onPhotoSelected={handlePhotoUpload}
+                      defaultImage={photoPreview}
+                    />
+                  </Box>
+
+                  {/* Photo filters */}
+                  <Box 
+                    sx={{ 
+                      mt: 3,
+                      width: '100%'
+                    }}
+                  >
+                    <Typography 
+                      variant='subtitle1' 
+                      sx={{ 
+                        fontWeight: 500,
+                        color: 'text.primary',
+                        mb: 2
+                      }}
+                    >
+                      Photo Filter
+                    </Typography>
+                    
+                    <FormControl 
+                      fullWidth 
+                      sx={{ 
+                        mb: 2.5,
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 1.5
+                        }
+                      }}
+                    >
+                      <InputLabel id='filter-label'>Apply Filter</InputLabel>
+                      <Select
+                        labelId='filter-label'
+                        id='filter'
+                        name='filter'
+                        value={memoryData.filter || 'none'}
+                        label='Apply Filter'
+                        onChange={handleInputChange}
+                      >
+                        <MenuItem value='none'>No Filter</MenuItem>
+                        <MenuItem value='polaroid'>Polaroid Frame</MenuItem>
+                        <MenuItem value='sepia'>Sepia Tone</MenuItem>
+                        <MenuItem value='vintage'>Vintage</MenuItem>
+                      </Select>
+                    </FormControl>
+
+                    {photoPreview && (
+                      <Box 
+                        sx={{ 
+                          width: '100%',
+                          borderRadius: 1.5,
+                          overflow: 'hidden',
+                          boxShadow: 1,
+                          bgcolor: 'background.paper'
+                        }}
+                      >
+                        <img
+                          src={photoPreview}
+                          alt='Memory Preview'
+                          style={{
+                            width: '100%',
+                            height: '350px',
+                            objectFit: 'cover',
+                            borderRadius: memoryData.filter === 'none' ? '8px' : '0',
+                            border:
+                              memoryData.filter === 'polaroid'
+                                ? '12px solid white'
+                                : memoryData.filter === 'sepia'
+                                ? '4px solid #d4b483'
+                                : memoryData.filter === 'vintage'
+                                ? '6px solid #f5f5f5'
+                                : 'none',
+                            transform:
+                              memoryData.filter === 'polaroid'
+                                ? 'rotate(-2deg)'
+                                : 'none',
+                            filter:
+                              memoryData.filter === 'sepia'
+                                ? 'sepia(100%)'
+                                : memoryData.filter === 'vintage'
+                                ? 'grayscale(50%)'
+                                : 'none',
+                          }}
+                        />
+                      </Box>
+                    )}
+                  </Box>
+                </Box>
+              )}
+
+              {memoryType === 'voice' && (
+                <Box
+                  sx={{
+                    bgcolor: 'background.paper',
+                    borderRadius: 1.5,
+                    p: 2.5,
+                    border: 1,
+                    borderColor: 'divider',
+                    width: '100%'
+                  }}
+                >
+                  <VoiceRecorder onRecordingComplete={handleVoiceRecorded} />
+                </Box>
+              )}
+
+              {memoryType === 'text' && (
+                <Box sx={{ width: '100%' }}>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={8}
+                    name='content'
+                    value={memoryData.content}
+                    onChange={handleInputChange}
+                    placeholder='Share your thoughts, stories, or memories here...'
+                    sx={{
+                      width: '100%',
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 1.5,
+                        bgcolor: 'background.paper',
+                        width: '100%'
+                      }
+                    }}
+                  />
+                </Box>
+              )}
+            </Paper>
           </Grid>
         </Grid>
       </Box>
@@ -418,11 +634,19 @@ const MemoryForm = ({ memoryData, setMemoryData }) => {
         open={notification.open}
         autoHideDuration={4000}
         onClose={closeNotification}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
         <Alert
           onClose={closeNotification}
           severity={notification.severity}
-          sx={{ width: '100%' }}>
+          sx={{ 
+            width: '100%',
+            borderRadius: 2,
+            '& .MuiAlert-message': { 
+              fontSize: '0.95rem' 
+            }
+          }}
+        >
           {notification.message}
         </Alert>
       </Snackbar>

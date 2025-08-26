@@ -260,7 +260,7 @@ const MemoryCard = ({
       transition={{ type: 'spring', stiffness: 400, damping: 17 }}>
       <Card
         sx={{
-          maxWidth: 345,
+          maxWidth: '100%', // Make it responsive instead of fixed 345px
           width: '100%',
           borderRadius: 3,
           overflow: 'hidden',

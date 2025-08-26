@@ -8,7 +8,7 @@ import {
   useTheme,
   useMediaQuery,
 } from '@mui/material';
-import { CalendarAndTasks } from '../components';
+import { CalendarAndTasks, UniversalSearch } from '../components';
 import { motion } from 'framer-motion';
 
 const TaskManagerPage = () => {
@@ -26,13 +26,23 @@ const TaskManagerPage = () => {
         px: { xs: 1.5, sm: 3, md: 4 },
         boxSizing: 'border-box',
         width: '100%',
-        maxWidth: '100%',
+        maxWidth: '1200px', // Uniform max width
+        mx: 'auto', // Center the container
         overflowX: 'hidden',
       }}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}>
+        
+        {/* Universal Search Bar */}
+        <Box sx={{ mb: 4 }}>
+          <UniversalSearch 
+            isFullWidth={true}
+            placeholder="Search tasks, memories, locations, or people..."
+          />
+        </Box>
+
         <Typography
           variant='h4'
           component='h1'

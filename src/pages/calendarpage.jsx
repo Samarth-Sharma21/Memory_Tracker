@@ -23,7 +23,7 @@ import {
   responsiveGridLayouts,
   safeContainerStyles,
 } from '../styles/globalResponsive';
-import { CalendarAndTasks, UpcomingTasksCard } from '../components';
+import { CalendarAndTasks, UpcomingTasksCard, UniversalSearch } from '../components';
 import { alpha } from '@mui/material/styles'; // Adjust the path as needed
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import AddIcon from '@mui/icons-material/Add';
@@ -69,9 +69,19 @@ const CalendarPage = () => {
           px: { xs: 2, sm: 2, md: 3 },
           boxSizing: 'border-box',
           width: '100%',
-          maxWidth: '100%',
+          maxWidth: '1200px', // Uniform max width
+          mx: 'auto', // Center the container
           overflowX: 'hidden',
         }}>
+        
+        {/* Universal Search Bar */}
+        <Box sx={{ mb: 4 }}>
+          <UniversalSearch 
+            isFullWidth={true}
+            placeholder="Search tasks, memories, locations, or people..."
+          />
+        </Box>
+
         {/* Simple Header */}
         <Box
           sx={{

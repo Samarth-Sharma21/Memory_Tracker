@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { supabase, locationService } from '../backend/server';
-import { useAuth } from '../contexts/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
-import { useResponsive } from '../styles/responsiveStyles';
+import { useState, useEffect } from "react";
+import { supabase, locationService } from "../backend/server";
+import { useAuth } from "../contexts/AuthContext";
+import { useNavigate, Link } from "react-router-dom";
+import { useResponsive } from "../styles/responsiveStyles";
 import {
   Box,
   Typography,
@@ -14,29 +14,30 @@ import {
   CircularProgress,
   useTheme,
   alpha,
-} from '@mui/material';
-import { motion } from 'framer-motion';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import HomeIcon from '@mui/icons-material/Home';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+} from "@mui/material";
+import { motion } from "framer-motion";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import HomeIcon from "@mui/icons-material/Home";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
 const SavedLocationsCard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const theme = useTheme();
-  const isDarkMode = theme.palette.mode === 'dark';
-  const { isExtraSmallMobile, isMobile, isTablet, isLaptop, isDesktop } = useResponsive();
+  const isDarkMode = theme.palette.mode === "dark";
+  const { isExtraSmallMobile, isMobile, isTablet, isLaptop, isDesktop } =
+    useResponsive();
 
   // State for saved locations
   const [savedLocations, setSavedLocations] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   // UI states
   const [notification, setNotification] = useState({
     open: false,
-    message: '',
-    severity: 'success',
+    message: "",
+    severity: "success",
   });
 
   // Fetch saved locations from database
@@ -66,8 +67,8 @@ const SavedLocationsCard = () => {
           setSavedLocations(data);
         }
       } catch (error) {
-        console.error('Error fetching locations:', error.message);
-        setError('Failed to load saved locations');
+        console.error("Error fetching locations:", error.message);
+        setError("Failed to load saved locations");
       } finally {
         setLoading(false);
       }
@@ -76,7 +77,7 @@ const SavedLocationsCard = () => {
     fetchLocations();
   }, []);
 
-  const showNotification = (message, severity = 'success') => {
+  const showNotification = (message, severity = "success") => {
     setNotification({
       open: true,
       message,
@@ -90,7 +91,7 @@ const SavedLocationsCard = () => {
 
   const handleNavigateToLocation = (location) => {
     // Show notification and open Google Maps with the location
-    showNotification(`Navigating to ${location.name}`, 'info');
+    showNotification(`Navigating to ${location.name}`, "info");
 
     // Open Google Maps with the location address or coordinates
     if (location.address) {
@@ -98,19 +99,19 @@ const SavedLocationsCard = () => {
       const encodedAddress = encodeURIComponent(location.address);
       window.open(
         `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`,
-        '_blank'
+        "_blank"
       );
     } else if (location.lat && location.lng) {
       // Fall back to coordinates if available
       window.open(
         `https://www.google.com/maps/dir/?api=1&destination=${location.lat},${location.lng}`,
-        '_blank'
+        "_blank"
       );
     }
   };
 
   const handleViewAllLocations = () => {
-    navigate('/saved-locations');
+    navigate("/saved-locations");
   };
 
   return (
@@ -119,21 +120,23 @@ const SavedLocationsCard = () => {
       sx={{
         p: 2,
         borderRadius: 2,
-        bgcolor: 'background.paper',
-        height: '100%',
-        width: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-      }}>
+        bgcolor: "background.paper",
+        height: "100%",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+      }}
+    >
       <Box
         sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
           mb: 2,
-        }}>
-        <Typography variant='h6' gutterBottom sx={{ mb: 0 }}>
+        }}
+      >
+        <Typography variant="h6" gutterBottom sx={{ mb: 0 }}>
           Saved Locations
         </Typography>
       </Box>
@@ -141,78 +144,81 @@ const SavedLocationsCard = () => {
       <Divider sx={{ mb: 2 }} />
 
       {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
           <CircularProgress />
         </Box>
       ) : error ? (
-        <Alert severity='error' sx={{ mb: 2 }}>
+        <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       ) : savedLocations.length > 0 ? (
         <Box
           sx={{
-            display: 'grid',
+            display: "grid",
             gridTemplateColumns: {
-              xs: '1fr', // Single column on extra small mobile
-              sm: 'repeat(2, 1fr)', // Two columns on larger screens
+              xs: "1fr", // Single column on extra small mobile
+              sm: "repeat(2, 1fr)", // Two columns on larger screens
             },
             gap: { xs: 1.5, sm: 2, md: 2.5 },
             flexGrow: 1,
-            overflowY: 'auto',
+            overflowY: "auto",
             pr: { xs: 1, sm: 2 }, // Responsive padding
             pb: { xs: 0.5, sm: 1 },
-          }}>
-
+          }}
+        >
           {savedLocations.map((location) => (
             <motion.div
               key={location.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}>
+              transition={{ duration: 0.3 }}
+            >
               <Paper
                 elevation={1}
                 onClick={() => handleNavigateToLocation(location)}
                 sx={{
                   p: 2,
-                  minHeight: '85px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  textAlign: 'center',
+                  minHeight: "85px",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  textAlign: "center",
                   borderRadius: 2,
                   bgcolor: isDarkMode
-                    ? 'rgba(255, 255, 255, 0.05)'
-                    : 'rgba(0, 0, 0, 0.02)',
-                  border: '1px solid',
+                    ? "rgba(255, 255, 255, 0.05)"
+                    : "rgba(0, 0, 0, 0.02)",
+                  border: "1px solid",
                   borderColor: isDarkMode
-                    ? 'rgba(255, 255, 255, 0.1)'
-                    : 'rgba(0, 0, 0, 0.1)',
-                  '&:hover': {
+                    ? "rgba(255, 255, 255, 0.1)"
+                    : "rgba(0, 0, 0, 0.1)",
+                  "&:hover": {
                     bgcolor: isDarkMode
-                      ? 'rgba(255, 255, 255, 0.1)'
-                      : 'rgba(0, 0, 0, 0.05)',
-                    transform: 'translateY(-3px)',
-                    transition: 'transform 0.2s ease',
+                      ? "rgba(255, 255, 255, 0.1)"
+                      : "rgba(0, 0, 0, 0.05)",
+                    transform: "translateY(-3px)",
+                    transition: "transform 0.2s ease",
                   },
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                }}>
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                }}
+              >
                 <Box sx={{ mb: 1 }}>
-                  <LocationOnIcon color='secondary' sx={{ fontSize: 28 }} />
+                  <LocationOnIcon color="secondary" sx={{ fontSize: 28 }} />
                 </Box>
                 <Typography
-                  variant='body2'
+                  variant="body2"
                   sx={{
                     fontWeight: 400,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    display: '-webkit-box',
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    display: "-webkit-box",
                     WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    lineHeight: '1.2',
-                    fontSize: '0.85rem',
-                  }}>
+                    WebkitBoxOrient: "vertical",
+                    lineHeight: "1.2",
+                    fontSize: "0.85rem",
+                  }}
+                >
                   {location.name}
                 </Typography>
               </Paper>
@@ -223,53 +229,56 @@ const SavedLocationsCard = () => {
         <Box
           sx={{
             p: 3,
-            textAlign: 'center',
+            textAlign: "center",
             bgcolor: isDarkMode
-              ? 'rgba(255, 255, 255, 0.05)'
-              : 'rgba(0, 0, 0, 0.02)',
+              ? "rgba(255, 255, 255, 0.05)"
+              : "rgba(0, 0, 0, 0.02)",
             borderRadius: 2,
             flexGrow: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}>
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           <LocationOnIcon
-            sx={{ fontSize: 48, color: 'text.secondary', mb: 2, opacity: 0.5 }}
+            sx={{ fontSize: 48, color: "text.secondary", mb: 2, opacity: 0.5 }}
           />
-          <Typography color='text.secondary' gutterBottom>
+          <Typography color="text.secondary" gutterBottom>
             No saved locations to display
           </Typography>
           <Button
-            variant='contained'
-            color='primary'
-            size='small'
+            variant="contained"
+            color="primary"
+            size="small"
             onClick={handleViewAllLocations}
-            sx={{ mt: 1 }}>
+            sx={{ mt: 1 }}
+          >
             Add Locations
           </Button>
         </Box>
       )}
 
       {/* View All Button - Always at the bottom */}
-      <Box sx={{ mt: 'auto', pt: 2 }}>
+      <Box sx={{ mt: "auto", pt: 2 }}>
         <Button
           component={Link}
-          to='/saved-locations'
-          variant='outlined'
-          color='primary'
+          to="/saved-locations"
+          variant="outlined"
+          color="primary"
           fullWidth
           endIcon={<ArrowForwardIcon />}
           sx={{
             borderRadius: 1,
             py: 1,
             fontWeight: 500,
-            '&:hover': {
-              color: 'primary.main', // Keep text color consistent on hover
-              borderColor: 'primary.main', // Keep border color consistent
+            "&:hover": {
+              color: "primary.main", // Keep text color consistent on hover
+              borderColor: "primary.main", // Keep border color consistent
               bgcolor: alpha(theme.palette.primary.main, 0.05),
             },
-          }}>
+          }}
+        >
           View All Locations
         </Button>
       </Box>
@@ -279,11 +288,13 @@ const SavedLocationsCard = () => {
         open={notification.open}
         autoHideDuration={6000}
         onClose={handleCloseNotification}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
         <Alert
           onClose={handleCloseNotification}
           severity={notification.severity}
-          sx={{ width: '100%' }}>
+          sx={{ width: "100%" }}
+        >
           {notification.message}
         </Alert>
       </Snackbar>

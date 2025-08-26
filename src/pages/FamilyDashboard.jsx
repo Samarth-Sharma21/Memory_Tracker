@@ -31,6 +31,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { alpha } from '@mui/material/styles';
 import catImage from '../assets/cat.jpg';
 import Logo from '../components/Logo';
+import { UniversalSearch } from '../components';
 
 const FamilyDashboard = () => {
   const navigate = useNavigate();
@@ -126,7 +127,22 @@ const FamilyDashboard = () => {
   }, [memories]);
 
   return (
-    <Container maxWidth='lg' sx={{ py: 4 }}>
+    <Container 
+      maxWidth='lg' 
+      sx={{ 
+        py: 4,
+        maxWidth: "1200px", // Uniform max width
+        mx: "auto", // Center the container
+      }}
+    >
+      {/* Universal Search Bar */}
+      <Box sx={{ mb: 4 }}>
+        <UniversalSearch 
+          isFullWidth={true}
+          placeholder="Search memories, tasks, people, or locations..."
+        />
+      </Box>
+
       <Grid container spacing={4}>
         {/* Welcome Section */}
         <Grid item xs={12}>

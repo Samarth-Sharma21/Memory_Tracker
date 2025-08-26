@@ -1,12 +1,12 @@
 import AccessibilityControls from './AccessibilityControls';
-import BentoGrid from './BentoGrid';
+import BentoGrid from './bentogrid';
 import BreathingExercise from './BreathingExercise';
-import CalendarAndTasks from './CalendarAndTasks';
+import CalendarAndTasks from './calendarandtasks';
 import Chatbot from './Chatbot';
-import DashboardBentoGrid from './DashboardBentoGrid';
+import DashboardBentoGrid from './dashboardbentogrid';
 import EmergencyContact from './EmergencyContact';
-import EnhancedLocationTracker from './EnhancedLocationTracker';
-import FamilyManagementCard from './FamilyManagementCard';
+import EnhancedLocationTracker from './enhancedlocationtracker';
+import FamilyManagementCard from './familymanagementcard';
 import Footer from './Footer';
 import GroupCodeDisplay from './GroupCodeDisplay';
 import Layout from './Layout';
@@ -21,12 +21,13 @@ import AuthGuard from './AuthGuard';
 import ResponsiveWrapper from './ResponsiveWrapper';
 
 import Navbar from './Navbar';
-import NotificationsCard from './NotificationsCard';
+import NotificationsCard from './notificationscard';
 import PhotoUploader from './PhotoUploader';
 import ProtectedRoute from './ProtectedRoute';
-import SavedLocationsCard from './SavedLocationsCard';
+import SavedLocationsCard from './savedlocationscard';
+import UniversalSearch from './UniversalSearch';
 import VoiceRecorder from './VoiceRecorder';
-import UpcomingTasksCard from './UpcomingTasksCard';
+import UpcomingTasksCard from './upcomingtaskscard';
 
 export {
   AccessibilityControls,
@@ -53,6 +54,7 @@ export {
   PhotoUploader,
   ProtectedRoute,
   SavedLocationsCard,
+  UniversalSearch,
   VoiceRecorder,
   UpcomingTasksCard,
   AuthGuard,
