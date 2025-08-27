@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../backend/server';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } 
- from '../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useMemory } from '../contexts/MemoryContext';
 import {
   Box,
@@ -13,13 +12,24 @@ import {
   Alert,
   Chip,
   Stack,
+  Grid,
+  Card,
+  CardContent,
+  Divider,
+  useTheme,
+  alpha,
+  Fade,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import SaveIcon from '@mui/icons-material/Save';
+import CancelIcon from '@mui/icons-material/Cancel';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { MemoryForm, UniversalSearch } from '../components';
 
 const AddMemory = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
   const { user } = useAuth();
   const { triggerRefresh } = useMemory();
   const [completed, setCompleted] = useState(false);
@@ -155,108 +165,274 @@ const AddMemory = () => {
   };
 
   return (
-    <Container 
-      maxWidth='md' 
-      sx={{ 
-        mt: 2, 
-        mb: 4,
-        maxWidth: "800px", // Uniform max width for Add Memory page
-        mx: "auto", // Center the container
+    <Box
+      sx={{
+        minHeight: '100vh',
+        bgcolor: 'background.default',
+        py: { xs: 4, md: 6 },
       }}
     >
-      <Box sx={{ width: '100%' }}>
-        {/* Universal Search Bar */}
-        <Box sx={{ mb: 4 }}>
-          <UniversalSearch 
-            isFullWidth={true}
-            placeholder="Search memories, locations, or people..."
-          />
-        </Box>
+      <Container 
+        maxWidth="md" 
+        sx={{ 
+          px: { xs: 3, sm: 4, md: 6 },
+        }}
+      >
+        {/* Search Bar Section */}
+        <Fade in timeout={400}>
+          <Box sx={{ mb: 5 }}>
+            <UniversalSearch 
+              isFullWidth={true}
+              placeholder="Search memories, locations, or people..."
+            />
+          </Box>
+        </Fade>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
-          <Button
-            startIcon={<ArrowBackIcon />}
-            onClick={handleBack}
-            sx={{ mr: 2 }}>
-            Back
-          </Button>
-          <Typography variant='h4'>Add New Memory</Typography>
-        </Box>
-
-        <Paper elevation={2} sx={{ p: 3, borderRadius: 3 }}>
-          {completed ? (
-            <Alert severity='success'>
-              Memory saved successfully! Redirecting...
-            </Alert>
-          ) : (
-            <>
-              {error && (
-                <Alert severity='error' sx={{ mb: 3 }}>
-                  {error}
-                </Alert>
-              )}
-
-              {recentLocations.length > 0 && (
-                <Box sx={{ mb: 3 }}>
-                  <Typography
-                    variant='subtitle1'
-                    gutterBottom
-                    sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <LocationOnIcon color='primary' />
-                    Recent Locations
-                  </Typography>
-                  <Stack direction='row' spacing={1} flexWrap='wrap' gap={1}>
-                    {recentLocations.map((location, index) => (
-                      <Chip
-                        key={index}
-                        label={location}
-                        onClick={() => handleLocationSelect(location)}
-                        color={
-                          memoryData.location === location
-                            ? 'primary'
-                            : 'default'
-                        }
-                        variant={
-                          memoryData.location === location
-                            ? 'filled'
-                            : 'outlined'
-                        }
-                      />
-                    ))}
-                  </Stack>
-                </Box>
-              )}
-
-              <MemoryForm
-                memoryData={memoryData}
-                setMemoryData={setMemoryData}
+        {/* Header Section */}
+        <Fade in timeout={600}>
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center',
+              mb: 5,
+              gap: 3,
+            }}
+          >
+            <Button
+              startIcon={<ArrowBackIcon />}
+              onClick={handleBack}
+              variant="outlined"
+              sx={{ 
+                borderRadius: 2,
+                px: 3,
+                py: 1.5,
+                borderColor: alpha(theme.palette.primary.main, 0.3),
+                '&:hover': {
+                  borderColor: theme.palette.primary.main,
+                  bgcolor: alpha(theme.palette.primary.main, 0.05),
+                }
+              }}
+            >
+              Back
+            </Button>
+            
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <AddCircleOutlineIcon 
+                sx={{ 
+                  fontSize: { xs: 28, sm: 32 }, 
+                  color: 'primary.main' 
+                }} 
               />
+              <Typography 
+                variant="h3" 
+                sx={{ 
+                  fontWeight: 700,
+                  fontSize: { xs: '1.75rem', sm: '2.25rem' },
+                  color: 'text.primary',
+                }}
+              >
+                Add New Memory
+              </Typography>
+            </Box>
+          </Box>
+        </Fade>
 
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  mt: 4,
-                }}>
-                <Button
-                  variant='outlined'
-                  onClick={handleBack}
-                  sx={{ borderRadius: 2 }}>
-                  Cancel
-                </Button>
-                <Button
-                  variant='contained'
-                  color='primary'
-                  onClick={handleSaveMemory}
-                  sx={{ borderRadius: 2 }}>
-                  Save Memory
-                </Button>
+        {/* Main Content Card */}
+        <Fade in timeout={800}>
+          <Paper 
+            elevation={3} 
+            sx={{ 
+              borderRadius: 4,
+              overflow: 'hidden',
+              border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+              boxShadow: theme.shadows[8],
+            }}
+          >
+            {completed ? (
+              <Box sx={{ p: 6, textAlign: 'center' }}>
+                <Alert 
+                  severity="success" 
+                  sx={{ 
+                    borderRadius: 3,
+                    fontSize: '1.1rem',
+                    py: 2,
+                    '& .MuiAlert-message': {
+                      width: '100%',
+                      textAlign: 'center',
+                    }
+                  }}
+                >
+                  Memory saved successfully! Redirecting...
+                </Alert>
               </Box>
-            </>
-          )}
-        </Paper>
-      </Box>
-    </Container>
+            ) : (
+              <>
+                {/* Form Header */}
+                <Box 
+                  sx={{
+                    px: { xs: 4, sm: 5, md: 6 },
+                    py: { xs: 4, sm: 5 },
+                    bgcolor: alpha(theme.palette.primary.main, 0.02),
+                    borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                  }}
+                >
+                  {error && (
+                    <Alert 
+                      severity="error" 
+                      sx={{ 
+                        mb: 4,
+                        borderRadius: 2,
+                      }}
+                    >
+                      {error}
+                    </Alert>
+                  )}
+
+                  {/* Recent Locations */}
+                  {recentLocations.length > 0 && (
+                    <Box>
+                      <Typography
+                        variant="h6"
+                        sx={{ 
+                          mb: 3,
+                          fontWeight: 600,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1.5,
+                        }}
+                      >
+                        <LocationOnIcon sx={{ color: 'primary.main' }} />
+                        Recent Locations
+                      </Typography>
+                      
+                      <Box 
+                        sx={{ 
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: 2,
+                          mb: 2,
+                        }}
+                      >
+                        {recentLocations.slice(0, 5).map((location, index) => (
+                          <Chip
+                            key={index}
+                            label={location}
+                            onClick={() => handleLocationSelect(location)}
+                            variant={memoryData.location === location ? 'filled' : 'outlined'}
+                            color={memoryData.location === location ? 'primary' : 'default'}
+                            sx={{
+                              borderRadius: 3,
+                              px: 2,
+                              py: 1,
+                              height: 'auto',
+                              fontSize: '0.9rem',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease',
+                              '& .MuiChip-label': {
+                                py: 0.5,
+                              },
+                              '&:hover': {
+                                transform: 'translateY(-1px)',
+                                boxShadow: theme.shadows[4],
+                              },
+                            }}
+                          />
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
+                </Box>
+
+                {/* Memory Form Section */}
+                <Box
+                  sx={{
+                    px: { xs: 4, sm: 5, md: 6 },
+                    py: { xs: 4, sm: 5, md: 6 },
+                  }}
+                >
+                  <MemoryForm
+                    memoryData={memoryData}
+                    setMemoryData={setMemoryData}
+                  />
+                </Box>
+
+                {/* Action Buttons Section */}
+                <Box
+                  sx={{
+                    px: { xs: 4, sm: 5, md: 6 },
+                    py: { xs: 4, sm: 5 },
+                    bgcolor: alpha(theme.palette.background.default, 0.3),
+                    borderTop: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      gap: 3,
+                    }}
+                  >
+                    <Button
+                      variant="outlined"
+                      onClick={handleBack}
+                      size="large"
+                      startIcon={<CancelIcon />}
+                      sx={{ 
+                        borderRadius: 3,
+                        px: 4,
+                        py: 1.5,
+                        minWidth: { xs: '130px', sm: '150px' },
+                        fontSize: '1rem',
+                        fontWeight: 500,
+                        borderColor: alpha(theme.palette.grey[400], 0.5),
+                        color: 'text.secondary',
+                        '&:hover': {
+                          borderColor: theme.palette.grey[400],
+                          bgcolor: alpha(theme.palette.grey[400], 0.05),
+                        }
+                      }}
+                    >
+                      Cancel
+                    </Button>
+
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={handleSaveMemory}
+                      size="large"
+                      startIcon={<SaveIcon />}
+                      sx={{ 
+                        borderRadius: 3,
+                        px: 5,
+                        py: 1.5,
+                        minWidth: { xs: '150px', sm: '180px' },
+                        fontSize: '1.1rem',
+                        fontWeight: 600,
+                        boxShadow: theme.shadows[6],
+                        background: `linear-gradient(45deg, ${theme.palette.primary.main} 30%, ${theme.palette.primary.light} 90%)`,
+                        '&:hover': {
+                          boxShadow: theme.shadows[10],
+                          transform: 'translateY(-2px)',
+                          background: `linear-gradient(45deg, ${theme.palette.primary.dark} 30%, ${theme.palette.primary.main} 90%)`,
+                        },
+                        transition: 'all 0.3s ease',
+                      }}
+                    >
+                      Save Memory
+                    </Button>
+                  </Box>
+                </Box>
+              </>
+            )}
+          </Paper>
+        </Fade>
+
+        {/* Bottom Spacing */}
+        <Box sx={{ height: { xs: 60, md: 80 } }} />
+      </Container>
+    </Box>
   );
 };
 
